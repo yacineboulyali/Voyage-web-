@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap');
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-arabic: "Cairo", sans-serif;
+  --font-arabic-serif: "Amiri", serif;
+
+  --color-morocco-emerald: #2c4e3e;
+  --color-morocco-blue: #005ab2;
+  --color-morocco-gold: #D4A843;
+  --color-morocco-cream: #fdf9f3;
+  --color-morocco-orange: #C1440E;
+}
+
+@layer base {
+  body {
+    @apply bg-morocco-cream text-slate-900 font-sans antialiased;
+  }
+}
+
+.zellige-pattern {
+  background-image: radial-gradient(circle at center, var(--color-morocco-gold) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  opacity: 0.05;
+}
+
+.arabic-font {
+  font-family: var(--font-arabic);
+}
+
+.font-headline {
+  font-family: var(--font-headline);
+}
+
