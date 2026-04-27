@@ -32,7 +32,7 @@ const MOCK_LEAGUES: League[] = [
     id: 'silver',
     name: 'Ligue Argent',
     tier: 'silver',
-    timeLeft: 'Terminée',
+    timeLeft: 'Saison Terminée',
     myRank: 12,
     players: []
   },
@@ -40,7 +40,23 @@ const MOCK_LEAGUES: League[] = [
     id: 'gold',
     name: 'Ligue Or',
     tier: 'gold',
-    timeLeft: 'Bientôt',
+    timeLeft: 'Bientôt disponible',
+    myRank: 0,
+    players: []
+  },
+  {
+    id: 'emerald',
+    name: 'Ligue Émeraude',
+    tier: 'emerald',
+    timeLeft: 'Verrouillé',
+    myRank: 0,
+    players: []
+  },
+  {
+    id: 'diamond',
+    name: 'Ligue Diamant',
+    tier: 'diamond',
+    timeLeft: 'Verrouillé',
     myRank: 0,
     players: []
   }
@@ -50,9 +66,9 @@ export default function LeagueScreen({ onSelectLeague, onCreateLeague }: LeagueS
   return (
     <div className="flex flex-col h-full bg-morocco-cream pb-32">
       {/* Header */}
-      <header className="px-6 pt-12 pb-6 bg-white border-b border-morocco-gold/10 sticky top-0 z-10">
+      <header className="px-6 pt-12 pb-6 bg-white border-b border-morocco-gold/10 sticky top-0 z-10 shadow-sm">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-2xl font-black text-morocco-emerald font-headline">Ligue & Classement</h1>
+          <h1 className="text-2xl font-black text-morocco-emerald font-headline">Ligues</h1>
           <button 
             onClick={onCreateLeague}
             className="bg-morocco-gold text-white p-2 rounded-full hover:scale-110 active:scale-95 transition-transform"
@@ -60,7 +76,7 @@ export default function LeagueScreen({ onSelectLeague, onCreateLeague }: LeagueS
             <Plus size={20} />
           </button>
         </div>
-        <p className="text-slate-500 text-sm">Gagnez des points pour grimper dans le classement !</p>
+        <p className="text-slate-500 text-sm">Liste des ligues et compétitions en cours</p>
       </header>
 
       <main className="flex-grow p-6 space-y-6 overflow-y-auto">
@@ -80,7 +96,9 @@ export default function LeagueScreen({ onSelectLeague, onCreateLeague }: LeagueS
                   <div className={cn(
                     "w-12 h-12 rounded-xl flex items-center justify-center shadow-inner",
                     league.tier === 'bronze' ? "bg-amber-100 text-amber-700" :
-                    league.tier === 'silver' ? "bg-slate-100 text-slate-500" : "bg-yellow-100 text-yellow-700"
+                    league.tier === 'silver' ? "bg-slate-100 text-slate-500" : 
+                    league.tier === 'gold' ? "bg-yellow-100 text-yellow-700" :
+                    league.tier === 'emerald' ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
                   )}>
                     <Trophy size={24} />
                   </div>
@@ -120,7 +138,9 @@ export default function LeagueScreen({ onSelectLeague, onCreateLeague }: LeagueS
                     </div>
                   )}
                   {league.players.length === 0 && (
-                    <div className="text-xs text-slate-300 italic">Pas encore de participants</div>
+                    <div className="text-xs text-slate-300 italic">
+                      {league.timeLeft === 'Verrouillé' ? 'Débloquez cette ligue pour concourir' : 'Pas encore de participants'}
+                    </div>
                   )}
                 </div>
                 
@@ -131,7 +151,9 @@ export default function LeagueScreen({ onSelectLeague, onCreateLeague }: LeagueS
               <div className={cn(
                 "absolute top-0 right-0 w-24 h-24 opacity-[0.03] -mr-8 -mt-8 rounded-full",
                 league.tier === 'bronze' ? "bg-amber-700" :
-                league.tier === 'silver' ? "bg-slate-700" : "bg-yellow-700"
+                league.tier === 'silver' ? "bg-slate-700" : 
+                league.tier === 'gold' ? "bg-yellow-700" :
+                league.tier === 'emerald' ? "bg-emerald-700" : "bg-blue-700"
               )} />
             </motion.div>
           ))}

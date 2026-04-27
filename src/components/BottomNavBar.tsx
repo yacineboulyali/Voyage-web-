@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { motion } from 'motion/react';
 import { MapIcon, Trophy, User, LayoutGrid, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -28,24 +29,26 @@ export default function BottomNavBar({ activeTab, onTabChange }: BottomNavBarPro
 
         if (tab.id === 'journey') {
           return (
-            <button
+            <motion.button
               key={tab.id}
+              whileTap={{ scale: 1.15 }}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "relative flex flex-col items-center justify-center p-4 mb-4 scale-125 transition-all active:scale-110",
+                "relative flex flex-col items-center justify-center p-4 mb-4 scale-125 transition-all",
                 isActive ? "bg-morocco-emerald text-white rounded-full shadow-lg ring-8 ring-white" : "text-slate-400 bg-white"
               )}
             >
               <Icon size={24} fill={isActive ? "currentColor" : "none"} />
-            </button>
+            </motion.button>
           );
         }
 
         return (
-          <button
+          <motion.button
             key={tab.id}
+            whileTap={{ scale: 0.9 }}
             onClick={() => onTabChange(tab.id)}
-            className="flex flex-col items-center justify-center text-slate-400 p-2 mb-2 transition-all hover:text-morocco-emerald active:scale-90"
+            className="flex flex-col items-center justify-center text-slate-400 p-2 mb-2 transition-all hover:text-morocco-emerald"
           >
             <Icon size={24} color={isActive ? "var(--color-morocco-emerald)" : "currentColor"} />
             <span className={cn(
@@ -54,7 +57,7 @@ export default function BottomNavBar({ activeTab, onTabChange }: BottomNavBarPro
             )}>
               {tab.label}
             </span>
-          </button>
+          </motion.button>
         );
       })}
     </nav>
