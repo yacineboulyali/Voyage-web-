@@ -140,14 +140,18 @@ const CityNode: React.FC<{ city: City; onSelect: () => void; delay: number; isSe
            <Check size={40} className="text-white font-bold" />
         ) : (
           <motion.div
-            animate={(isActive || isSelected) ? {
+            animate={isSelected ? {
               scale: [1, 1.15, 1],
-            } : {}}
-            transition={(isActive || isSelected) ? {
-              duration: 2,
+            } : (isActive ? {
+              scale: [1, 1.1, 1],
+            } : {
+              scale: 1
+            })}
+            transition={{
+              duration: isSelected ? 1.2 : 2.5,
               repeat: Infinity,
               ease: "easeInOut"
-            } : {}}
+            }}
           >
             <MapPin size={40} className={cn(isSelected ? "text-morocco-orange" : (isActive ? "text-morocco-gold" : "text-slate-400"))} />
           </motion.div>
@@ -161,6 +165,15 @@ const CityNode: React.FC<{ city: City; onSelect: () => void; delay: number; isSe
             {isSelected ? "EXPLORATION..." : "ACTUEL"}
           </div>
         )}
+
+        <div className={cn(
+          "absolute -bottom-4 bg-white px-3 py-1 rounded-full shadow-lg border-2 flex items-center justify-center min-w-[48px] z-20 transition-all",
+          isLocked ? "border-slate-200 text-slate-400" : (isCompleted ? "border-morocco-emerald text-morocco-emerald" : "border-morocco-gold text-morocco-gold")
+        )}>
+          <span className="text-[12px] font-black tracking-tighter">
+            {isCompleted ? city.totalSteps : (isLocked ? 0 : city.stepNum)}/{city.totalSteps}
+          </span>
+        </div>
       </button>
       
       <div className="mt-4 text-center">
@@ -171,17 +184,12 @@ const CityNode: React.FC<{ city: City; onSelect: () => void; delay: number; isSe
           {city.arabicName}
         </p>
         {!isLocked && (
-          <div className="mt-2 flex flex-col items-center gap-1">
-             <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(isCompleted ? city.totalSteps : city.stepNum) / city.totalSteps * 100}%` }}
-                  className={cn("h-full", isCompleted ? "bg-morocco-emerald" : "bg-morocco-gold")}
-                />
-             </div>
-             <span className="text-[10px] font-black text-slate-400">
-               {isCompleted ? city.totalSteps : city.stepNum}/{city.totalSteps}
-             </span>
+          <div className="mt-2 w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50 mx-auto">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${(isCompleted ? city.totalSteps : city.stepNum) / city.totalSteps * 100}%` }}
+              className={cn("h-full", isCompleted ? "bg-morocco-emerald" : "bg-morocco-gold")}
+            />
           </div>
         )}
       </div>

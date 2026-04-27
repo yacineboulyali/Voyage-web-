@@ -19,6 +19,7 @@ import GrammarQuestScreen from './views/GrammarQuestScreen';
 import LeagueScreen from './views/LeagueScreen';
 import LeagueDetailScreen from './views/LeagueDetailScreen';
 import LeagueCreateScreen from './views/LeagueCreateScreen';
+import VocabularyMatchScreen from './views/VocabularyMatchScreen';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Splash);
@@ -93,6 +94,8 @@ export default function App() {
             onBack={() => setCurrentScreen(Screen.League)} 
           />
         );
+      case Screen.VocabularyMatch:
+        return <VocabularyMatchScreen onBack={() => setCurrentScreen(Screen.Map)} />;
       case Screen.Profile:
         return <ProfileScreen onBack={() => setCurrentScreen(Screen.Map)} />;
       case Screen.Settings:
@@ -109,7 +112,8 @@ export default function App() {
       case Screen.Map: return 'journey';
       case Screen.Profile: return 'profile';
       case Screen.Settings: return 'settings';
-      case Screen.GrammarQuest: return 'explore';
+      case Screen.GrammarQuest:
+      case Screen.VocabularyMatch: return 'explore';
       case Screen.League:
       case Screen.LeagueDetail:
       case Screen.LeagueCreate: return 'league';

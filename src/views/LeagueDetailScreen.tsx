@@ -28,6 +28,26 @@ const MOCK_LEAGUES: Record<string, League> = {
       { id: '5', name: 'Imane', xp: 1200, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDa0Qi6bn32DpDzORmMcPM-DSSMBY4VsJPvTEDgA1VhvdMDJ5W1JuO2zyz9ZMLC89u0CbVN3ihJuoBveSKM2GCQy-O8THfaB-rhAO5CjQA_R8WY_c_L46eN34wiwNl_drXpdRsZFUQbBu7TB3JzCLp0TXgc2cFJXPSqqisFG3irKtEALPT0gl0QnP8_BkrZc2i6Fp2pdvd_NuLII2sD7wTQd_-W4xfKAcXdsXc61Hkyfwvoo-4tJ210y5sUkpj3JogzcpI7JNkya7o', rank: 5 },
       { id: '6', name: 'Karim', xp: 1100, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDELPthMs2U6y2tJ3Yqx-UU35PQLAwWoRBRNg0EswoS0MmfT09P7VkfT-S2MVhcLrC-E02QjUlaDtcXJlfL41YpCZAFhERe_NSbyVfJfBykmZBD1BXAvn8wElgnn1pEu5GBWjRRwJQjkvavkWkq-hQhCu7vEmRVK2RLf2QBi-674WNaG7M2FFq6W4HI9uXm8GRgNh2Hh-_2DaqkrhH_kKf-e8QmR_nCCOjqmw1Y8ICCliS0wKbACA5hjpAykN8V_SWM_37LYqk0Yfo', rank: 6 },
     ]
+  },
+  silver: {
+    id: 'silver',
+    name: 'Ligue Argent',
+    tier: 'silver',
+    timeLeft: 'Saison Terminée',
+    myRank: 12,
+    players: [
+      { id: 's1', name: 'Mounir', xp: 4500, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDELPthMs2U6y2tJ3Yqx-UU35PQLAwWoRBRNg0EswoS0MmfT09P7VkfT-S2MVhcLrC-E02QjUlaDtcXJlfL41YpCZAFhERe_NSbyVfJfBykmZBD1BXAvn8wElgnn1pEu5GBWjRRwJQjkvavkWkq-hQhCu7vEmRVK2RLf2QBi-674WNaG7M2FFq6W4HI9uXm8GRgNh2Hh-_2DaqkrhH_kKf-e8QmR_nCCOjqmw1Y8ICCliS0wKbACA5hjpAykN8V_SWM_37LYqk0Yfo', rank: 1 },
+      { id: 's2', name: 'Salma', xp: 4200, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDa0Qi6bn32DpDzORmMcPM-DSSMBY4VsJPvTEDgA1VhvdMDJ5W1JuO2zyz9ZMLC89u0CbVN3ihJuoBveSKM2GCQy-O8THfaB-rhAO5CjQA_R8WY_c_L46eN34wiwNl_drXpdRsZFUQbBu7TB3JzCLp0TXgc2cFJXPSqqisFG3irKtEALPT0gl0QnP8_BkrZc2i6Fp2pdvd_NuLII2sD7wTQd_-W4xfKAcXdsXc61Hkyfwvoo-4tJ210y5sUkpj3JogzcpI7JNkya7o', rank: 2 },
+      { id: 's3', name: 'Bilal', xp: 3800, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBEP_TLmyVFjaWaNxAu8UyMUUtTSGatOhatiT0Mp8tAURXHtC8g4ek4E7sSUvqxlsejnI2vH8DUdoNJYV9MFFkQU-Bd9Y-xQw_9d-ZP9EoeuMxD88FgkoEnVrVIV2tUz6UH2oCU_dA99VqtE1hzQkSmtqrqvL1x4Y2bCWMd9MQuE7K6WdoUz7l0e3QWJxbzAkMjgAbctL76dZ28ZuK8N8a3KFZrI6mmkQBigwcpxz6aWoyDHQdFYpUvqpC0q3li40vZ9sFT_gDGXrg', rank: 3 },
+    ]
+  },
+  gold: {
+    id: 'gold',
+    name: 'Ligue Or',
+    tier: 'gold',
+    timeLeft: 'Bientôt disponible',
+    myRank: 0,
+    players: []
   }
 };
 
