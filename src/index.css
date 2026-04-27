@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap');
 
-@theme {
+:root {
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
   --font-headline: "Plus Jakarta Sans", sans-serif;
   --font-arabic: "Cairo", sans-serif;
@@ -16,7 +16,11 @@
 
 @layer base {
   body {
-    @apply bg-morocco-cream text-slate-900 font-sans antialiased;
+    background-color: var(--color-morocco-cream);
+    color: rgb(15 23 42); /* slate-900 */
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -32,5 +36,19 @@
 
 .font-headline {
   font-family: var(--font-headline);
+}
+
+.path-dashed {
+  stroke-dasharray: 8, 12;
+  animation: dash-move 20s linear infinite;
+}
+
+@keyframes dash-move {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 

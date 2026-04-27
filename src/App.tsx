@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Screen, CITIES, type City } from './types';
+import { Screen, type City, type Mission } from './types';
 import BottomNavBar from './components/BottomNavBar';
 import SplashScreen from './views/SplashScreen';
 import WelcomeScreen from './views/WelcomeScreen';
@@ -22,7 +23,8 @@ import LeagueCreateScreen from './views/LeagueCreateScreen';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Splash);
-  const [selectedCity, setSelectedCity] = useState<City>(CITIES[2]); // Default Fès
+  const [selectedCity, setSelectedCity] = useState<City | null>(null); 
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [userStats, setUserStats] = useState({
     xp: 1450,
@@ -36,6 +38,25 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [currentScreen]);
+
+  useEffect(() => {
+    async function fetchFirstMission() {
+      if (selectedCity) {
+        const { data, error } = await supabase
+          .from('missions')
+          .select('*')
+          .eq('city_id', selectedCity.id)
+          .order('sort_order', { ascending: true })
+          .limit(1)
+          .single();
+        
+        if (!error && data) {
+          setSelectedMission(data);
+        }
+      }
+    }
+    fetchFirstMission();
+  }, [selectedCity]);
 
   const showNavBar = [Screen.Map, Screen.Profile, Screen.Settings, Screen.GrammarQuest, Screen.League, Screen.LeagueDetail, Screen.LeagueCreate].includes(currentScreen);
 
@@ -56,14 +77,17 @@ export default function App() {
           />
         );
       case Screen.Story:
+        if (!selectedCity) return <MapJourneyScreen stats={userStats} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
         return (
           <StoryScreen 
             city={selectedCity} 
+            mission={selectedMission || undefined}
             onClose={() => setCurrentScreen(Screen.Map)}
             onStartChallenge={() => setCurrentScreen(Screen.Challenge)}
           />
         );
       case Screen.Challenge:
+        if (!selectedCity) return <MapJourneyScreen stats={userStats} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
         return (
           <ChallengeScreen 
             city={selectedCity} 

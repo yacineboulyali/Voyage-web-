@@ -45,21 +45,40 @@ export type City = {
   focus: string;
   points: number;
   image: string;
+  iconUrl?: string;
   status: 'locked' | 'active' | 'completed';
   stepNum: number;
   totalSteps: number;
 };
 
+export type Mission = {
+  id: string;
+  challenge_id: string;
+  city_id: string;
+  title_fr: string;
+  title_ar?: string;
+  description_fr?: string;
+  description_ar?: string;
+  mission_type: 'challenge' | 'dialogue' | 'minigame' | 'scenario';
+  xp_reward: number;
+  mentor_name?: string;
+  mentor_role?: string;
+  script_opening?: string;
+  script_closing?: string;
+};
+
 export type Challenge = {
   id: string;
-  type: 'glitch' | 'riddle' | 'decision' | 'fill-in-blanks' | 'mosaic';
+  type: 'glitch' | 'riddle' | 'decision' | 'fill-in-blanks' | 'mosaic' | 'ranking' | 'matching' | 'short-answer' | 'dialogue';
   title: string;
   question: string;
-  options?: { id: string; text: string; label?: string }[];
+  options?: { id: string; text: string; label?: string; match?: string }[];
   correctOptionId?: string;
   content?: string[]; // For glitch or fill-in-blanks
   hint?: string;
   arabicQuestion?: string;
+  feedbackPositive?: string;
+  feedbackNegative?: string;
 };
 
 export const CITIES: City[] = [
@@ -111,7 +130,7 @@ export const CITIES: City[] = [
     focus: 'Communication & Négociation',
     points: 400,
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAo5rKbDQN79PlNuvL0J92tWoa79kWMYpbrJCuOKTR4sc6zF3U2zU7ahtX9RoV7PN8nsyFpTM3VSAgBdDMeu-VOsRLn6MTd1wyo675_aRPjoXN3UGh_x6-1ic30Qn64TYvXc02NPE7gn9AeXTOfxWRXDnBZHd9Itq3mHbvFdiJMubRglApslIdlqGTnZSEKZQjjuQs2HXj8u9DoWKMS2shEfPBXyoXvvw4tRtn2d9hupkfWpTZd92TE6fdI7zrpABzkDMs85P1QO-k',
-    status: 'locked',
+    status: 'active',
     stepNum: 1,
     totalSteps: 15,
   },

@@ -5,11 +5,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { MapPin, Trophy, Navigation, Map as MapIcon, User, ChevronRight, Check, Settings } from 'lucide-react';
-import { CITIES, type City } from '../types';
+import { MapPin, Trophy, Navigation, Map as MapIcon, User, ChevronRight, Check, Settings, Loader2 } from 'lucide-react';
+import { type City } from '../types';
 import { cn } from '../lib/utils';
 import BottomNavBar from '../components/BottomNavBar';
 import TopAppBar from '../components/TopAppBar';
+import { useSupabaseCities } from '../hooks/useSupabase';
 
 interface MapJourneyScreenProps {
   stats: { xp: number; stars: number; level: number };
@@ -17,6 +18,7 @@ interface MapJourneyScreenProps {
 }
 
 export default function MapJourneyScreen({ stats, onSelectCity }: MapJourneyScreenProps) {
+  const { cities, loading } = useSupabaseCities();
   const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
 
   const handleCitySelect = (city: City) => {
@@ -28,6 +30,18 @@ export default function MapJourneyScreen({ stats, onSelectCity }: MapJourneyScre
     }, 600);
   };
 
+  if (loading) {
+    return (
+      <div className="h-full w-full bg-morocco-cream flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-morocco-emerald" size={48} />
+        <p className="mt-4 font-headline font-bold text-morocco-emerald">Chargement de la carte...</p>
+      </div>
+    );
+  }
+
+  const activeCity = cities.find(c => c.status === 'active') || cities[0];
+  const displayCity = selectedCityId ? cities.find(c => c.id === selectedCityId) || activeCity : activeCity;
+
   return (
     <div className="h-full w-full bg-morocco-cream flex flex-col">
       <TopAppBar stats={stats} />
@@ -36,14 +50,17 @@ export default function MapJourneyScreen({ stats, onSelectCity }: MapJourneyScre
         <div className="absolute inset-0 zellige-pattern pointer-events-none" />
         
         {/* SVG Journey Path */}
-        <div className="absolute inset-0 w-full h-[1200px] pointer-events-none opacity-20">
-           <svg width="100%" height="100%" className="fill-none stroke-morocco-gold stroke-[4] stroke-dash-2">
-              <path d="M 50% 1100 Q 70% 950 50% 800 T 50% 500 T 50% 200" />
+        <div className="absolute inset-0 w-full h-[2000px] pointer-events-none opacity-40">
+           <svg width="100%" height="100%" className="fill-none stroke-morocco-gold/40 stroke-[4]">
+              <path 
+                d="M 50% 1800 C 60% 1600 40% 1400 50% 1200 S 60% 800 50% 600 S 40% 200 50% 50" 
+                className="path-dashed"
+              />
            </svg>
         </div>
 
         <div className="relative z-10 flex flex-col-reverse items-center gap-48 max-w-md mx-auto py-20">
-          {CITIES.map((city, index) => (
+          {cities.map((city, index) => (
             <CityNode 
               key={city.id} 
               city={city} 
@@ -58,30 +75,31 @@ export default function MapJourneyScreen({ stats, onSelectCity }: MapJourneyScre
         <motion.div 
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
+          key={displayCity.id}
           className="fixed bottom-[100px] left-4 right-4 z-40"
         >
           <div className="bg-white border border-morocco-gold/20 rounded-2xl p-6 shadow-2xl backdrop-blur-md">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <span className="inline-block bg-morocco-gold/10 text-morocco-gold text-[10px] font-bold px-2.5 py-1 rounded mb-2 border border-morocco-gold/20 uppercase tracking-widest">
-                  ÉTAPE 3 • فاس البالي
+                  ÉTAPE {displayCity.stepNum} • {displayCity.arabicName}
                 </span>
-                <h2 className="text-2xl font-headline font-extrabold text-morocco-emerald">La Médina de Fès</h2>
+                <h2 className="text-2xl font-headline font-extrabold text-morocco-emerald">{displayCity.name}</h2>
               </div>
               <div className="bg-morocco-gold/5 p-2 rounded-xl text-center min-w-[64px] border border-morocco-gold/10">
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Points</p>
-                <p className="text-morocco-gold font-black text-xl">450</p>
+                <p className="text-morocco-gold font-black text-xl">{displayCity.points}</p>
               </div>
             </div>
             <p className="text-slate-600 text-sm leading-relaxed mb-6 font-medium">
-              Explorez le labyrinthe spirituel du Maroc. Maîtrisez le vocabulaire de l'artisanat traditionnel.
+              {displayCity.description} {displayCity.focus && `Focus : ${displayCity.focus}.`}
             </p>
             <motion.button 
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleCitySelect(CITIES[2])}
+              onClick={() => handleCitySelect(displayCity)}
               className="w-full bg-morocco-gold text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-colors shadow-lg shadow-morocco-gold/20"
             >
-              <span>CONTINUER LE VOYAGE</span>
+              <span>{displayCity.status === 'completed' ? 'REVOIR LES DÉFIS' : 'CONTINUER LE VOYAGE'}</span>
               <ChevronRight size={24} />
             </motion.button>
           </div>
@@ -149,7 +167,19 @@ const CityNode: React.FC<{ city: City; onSelect: () => void; delay: number; isSe
               ease: "easeInOut"
             } : {}}
           >
-            <MapPin size={40} className={cn(isSelected ? "text-morocco-orange" : (isActive ? "text-morocco-gold" : "text-slate-400"))} />
+            {city.iconUrl ? (
+              <img 
+                src={city.iconUrl} 
+                alt={city.name} 
+                className={cn(
+                  "w-12 h-12 object-contain transition-all",
+                  isSelected ? "scale-125" : "scale-100",
+                  !isActive && !isSelected && "grayscale opacity-60"
+                )} 
+              />
+            ) : (
+              <MapPin size={40} className={cn(isSelected ? "text-morocco-orange" : (isActive ? "text-morocco-gold" : "text-slate-400"))} />
+            )}
           </motion.div>
         )}
 

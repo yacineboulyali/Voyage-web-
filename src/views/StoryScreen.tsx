@@ -5,10 +5,11 @@
 
 import { motion } from 'motion/react';
 import { X, MoreVertical, MapPin, ArrowRight, User, BookOpen } from 'lucide-react';
-import { type City } from '../types';
+import { type City, type Mission } from '../types';
 
 interface StoryScreenProps {
   city: City;
+  mission?: Mission;
   onClose: () => void;
   onStartChallenge: () => void;
 }
@@ -47,7 +48,7 @@ export default function StoryScreen({ city, onClose, onStartChallenge }: StorySc
             />
           </div>
           <div className="mt-2 text-center text-[10px] font-headline font-bold tracking-[0.2em] text-white uppercase opacity-80">
-            DÉFI 1 — {city.name}
+            {mission?.title_fr || `DÉFI 1 — ${city.name}`}
           </div>
         </div>
 
@@ -78,24 +79,30 @@ export default function StoryScreen({ city, onClose, onStartChallenge }: StorySc
             {/* Text Content */}
             <div className="text-center space-y-3">
               <h1 className="font-headline font-extrabold text-2xl text-morocco-emerald leading-tight">
-                {city.name === 'Fès' ? "Le Cœur Historique du Royaume" : city.name}
+                {mission?.title_fr || city.name}
               </h1>
               <div className="space-y-3 px-2">
                 <p className="text-slate-600 font-medium leading-relaxed">
-                  {city.description}
+                  {mission?.description_fr || city.description}
                 </p>
-                <p className="text-morocco-gold font-arabic text-sm leading-relaxed" dir="rtl">
-                  {city.arabicDescription}
-                </p>
+                {mission?.description_ar && (
+                  <p className="text-morocco-gold font-arabic text-sm leading-relaxed" dir="rtl">
+                    {mission.description_ar}
+                  </p>
+                )}
               </div>
 
               {/* Dialogue Box */}
-              <div className="bg-morocco-emerald/5 rounded-2xl p-4 border-l-4 border-morocco-emerald mt-2 text-left">
-                <p className="text-sm italic text-slate-600">
-                  <span className="font-bold text-morocco-emerald text-xs uppercase block mb-1">Mehdi :</span> 
-                  "C'est magnifique ! Mais pour trouver notre chemin, on va devoir discuter avec les habitants..."
-                </p>
-              </div>
+              {(mission?.script_opening || mission?.mentor_name) && (
+                <div className="bg-morocco-emerald/5 rounded-2xl p-4 border-l-4 border-morocco-emerald mt-2 text-left">
+                  <p className="text-sm italic text-slate-600">
+                    <span className="font-bold text-morocco-emerald text-xs uppercase block mb-1">
+                      {mission.mentor_name || "Mentor"} :
+                    </span> 
+                    "{mission.script_opening || "Prêt pour l'aventure ?"}"
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* CTA Action */}
