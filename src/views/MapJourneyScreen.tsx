@@ -4,225 +4,633 @@
  */
 
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { MapPin, Trophy, Navigation, Map as MapIcon, User, ChevronRight, Check, Settings, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  MapPin, Trophy, Check, ChevronRight, X, Loader2, Lock,
+  Star, Sparkles, Navigation2
+} from 'lucide-react';
 import { type City } from '../types';
 import { cn } from '../lib/utils';
-import BottomNavBar from '../components/BottomNavBar';
 import TopAppBar from '../components/TopAppBar';
-import { useSupabaseCities } from '../hooks/useSupabase';
+import { useSupabaseCities, useSupabaseMissions } from '../hooks/useSupabase';
+
+// ── Icônes par ville (emoji ou lucide) ──────────────────────────────────────
+const CITY_ICONS: Record<string, string> = {
+  rabat:       '🏛️',
+  chefchaouen: '🔵',
+  fes:         '🏺',
+  marrakech:   '🌹',
+  agadir:      '🌊',
+  meknes:      '⚔️',
+  tanger:      '🚢',
+  essaouira:   '🎨',
+};
+
+// ── Couleurs de nœud par statut ─────────────────────────────────────────────
+const NODE_STYLES = {
+  locked: {
+    outer:  'bg-[#D4C5B0] border-[#B5A48A]',
+    inner:  'bg-[#C9B99A]',
+    text:   'text-[#9B8870]',
+    aura:   'bg-[#C9A96E]/10',
+    ring:   'border-[#C9A96E]/20',
+  },
+  active: {
+    outer:  'bg-gradient-to-br from-[#A0572B] to-[#7B3F1A] border-[#4E2510]',
+    inner:  'bg-gradient-to-br from-[#B5693A] to-[#8B4A22]',
+    text:   'text-white',
+    aura:   'bg-[#7B3F1A]/25',
+    ring:   'border-[#D4A43E]',
+  },
+  completed: {
+    outer:  'bg-gradient-to-br from-[#D4A43E] to-[#A87D28] border-[#7A5C1A]',
+    inner:  'bg-gradient-to-br from-[#F0CC7A] to-[#D4A43E]',
+    text:   'text-[#4E2510]',
+    aura:   'bg-[#D4A43E]/25',
+    ring:   'border-[#D4A43E]',
+  },
+};
 
 interface MapJourneyScreenProps {
   stats: { xp: number; stars: number; level: number };
+  completedCities: string[];
+  completedMissions: string[];
   onSelectCity: (city: City) => void;
 }
 
-export default function MapJourneyScreen({ stats, onSelectCity }: MapJourneyScreenProps) {
-  const { cities, loading } = useSupabaseCities();
+export default function MapJourneyScreen({
+  stats, completedCities, completedMissions, onSelectCity
+}: MapJourneyScreenProps) {
+  const { cities, loading } = useSupabaseCities(completedCities, completedMissions);
   const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
+  const [cinematicCity, setCinematicCity]   = useState<City | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
 
-  const handleCitySelect = (city: City) => {
-    if (city.status === 'locked') return;
-    setSelectedCityId(city.id);
-    // Add a slight delay for the animation to play
-    setTimeout(() => {
-      onSelectCity(city);
-    }, 600);
+  const handleShowCitySheet  = (city: City) => { if (city.status !== 'locked') { setSelectedCityId(city.id); setIsDescriptionExpanded(true); } };
+  const handleLaunchAdventure = (city: City) => {
+    if (city.cinematicIntro && city.status !== 'completed') { setCinematicCity(city); }
+    else { onSelectCity(city); }
   };
 
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="h-full w-full bg-morocco-cream flex flex-col items-center justify-center">
-        <Loader2 className="animate-spin text-morocco-emerald" size={48} />
-        <p className="mt-4 font-headline font-bold text-morocco-emerald">Chargement de la carte...</p>
+      <div className="h-full w-full map-bg flex flex-col items-center justify-center gap-6">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+          className="w-16 h-16 rounded-full border-[6px] border-[#7B3F1A]/20 border-t-[#D4A43E]"
+        />
+        <p className="font-headline font-black text-[#7B3F1A] uppercase tracking-widest text-xs opacity-70">
+          Préparation du voyage...
+        </p>
       </div>
     );
   }
 
-  const activeCity = cities.find(c => c.status === 'active') || cities[0];
+  const activeCity  = (cities?.length > 0) ? (cities.find(c => c.status === 'active') || cities[0]) : null;
   const displayCity = selectedCityId ? cities.find(c => c.id === selectedCityId) || activeCity : activeCity;
 
   return (
-    <div className="h-full w-full bg-morocco-cream flex flex-col">
+    <div className="h-full w-full flex flex-col relative overflow-hidden map-bg">
       <TopAppBar stats={stats} />
-      
-      <main className="flex-grow overflow-y-auto relative pt-8 pb-32">
-        <div className="absolute inset-0 zellige-pattern pointer-events-none" />
-        
-        {/* SVG Journey Path */}
-        <div className="absolute inset-0 w-full h-[2000px] pointer-events-none opacity-40">
-           <svg width="100%" height="100%" className="fill-none stroke-morocco-gold/40 stroke-[4]">
-              <path 
-                d="M 50% 1800 C 60% 1600 40% 1400 50% 1200 S 60% 800 50% 600 S 40% 200 50% 50" 
-                className="path-dashed"
-              />
-           </svg>
-        </div>
 
-        <div className="relative z-10 flex flex-col-reverse items-center gap-48 max-w-md mx-auto py-20">
-          {cities.map((city, index) => (
-            <CityNode 
-              key={city.id} 
-              city={city} 
-              onSelect={() => handleCitySelect(city)} 
-              isSelected={selectedCityId === city.id}
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
+      {/* ── Écran cinématique ──────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {cinematicCity && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100]"
+            style={{ background: 'linear-gradient(160deg, #4E2510 0%, #7B3F1A 50%, #A0572B 100%)' }}
+          >
+            {/* Étoiles de fond (fixes) */}
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-[#D4A43E] star-twinkle"
+                style={{
+                  top: `${8 + Math.random() * 84}%`,
+                  left: `${5 + Math.random() * 90}%`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  fontSize: `${10 + Math.random() * 14}px`,
+                }}
+              >★</motion.div>
+            ))}
 
-        {/* Bottom Sheet Context for active city */}
-        <motion.div 
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          key={displayCity.id}
-          className="fixed bottom-[100px] left-4 right-4 z-40"
-        >
-          <div className="bg-white border border-morocco-gold/20 rounded-2xl p-6 shadow-2xl backdrop-blur-md">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="inline-block bg-morocco-gold/10 text-morocco-gold text-[10px] font-bold px-2.5 py-1 rounded mb-2 border border-morocco-gold/20 uppercase tracking-widest">
-                  ÉTAPE {displayCity.stepNum} • {displayCity.arabicName}
-                </span>
-                <h2 className="text-2xl font-headline font-extrabold text-morocco-emerald">{displayCity.name}</h2>
-              </div>
-              <div className="bg-morocco-gold/5 p-2 rounded-xl text-center min-w-[64px] border border-morocco-gold/10">
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Points</p>
-                <p className="text-morocco-gold font-black text-xl">{displayCity.points}</p>
+            {/* Contenu scrollable */}
+            <div className="absolute inset-0 overflow-y-auto scrollbar-hide">
+              <div className="min-h-full flex flex-col items-center justify-center p-8 text-center">
+                <motion.div
+                  initial={{ scale: 0.8, y: 30 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                  className="max-w-lg space-y-10 relative z-10 py-12"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    className="w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl shadow-2xl border-4 border-[#D4A43E]/50"
+                    style={{ background: 'radial-gradient(circle, #A0572B, #4E2510)' }}
+                  >
+                    {CITY_ICONS[cinematicCity.id] ?? '🗺️'}
+                  </motion.div>
+
+                  <div className="space-y-3">
+                    <p className="text-[#D4A43E] font-black uppercase tracking-[0.3em] text-xs">
+                      Le Voyage des Compétences
+                    </p>
+                    <h1 className="text-5xl font-headline font-black text-white tracking-tight">
+                      {cinematicCity.name}
+                    </h1>
+                    <p className="arabic-font text-[#C9A96E] text-xl">{cinematicCity.arabicName}</p>
+                  </div>
+
+                  <p className="text-xl font-bold text-white/85 leading-relaxed italic font-serif px-4">
+                    "{cinematicCity.cinematicIntro}"
+                  </p>
+
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => { const c = cinematicCity; setCinematicCity(null); onSelectCity(c); }}
+                    className="btn-voyage-accent px-10 py-4 text-lg w-full"
+                  >
+                    🚀 Commencer l'Aventure
+                  </motion.button>
+                </motion.div>
               </div>
             </div>
-            <p className="text-slate-600 text-sm leading-relaxed mb-6 font-medium">
-              {displayCity.description} {displayCity.focus && `Focus : ${displayCity.focus}.`}
-            </p>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleCitySelect(displayCity)}
-              className="w-full bg-morocco-gold text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-colors shadow-lg shadow-morocco-gold/20"
-            >
-              <span>{displayCity.status === 'completed' ? 'REVOIR LES DÉFIS' : 'CONTINUER LE VOYAGE'}</span>
-              <ChevronRight size={24} />
-            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Corps principal ──────────────────────────────────────────────── */}
+      <main className="flex-grow overflow-y-auto relative pt-6 pb-48 scrollbar-hide">
+
+        {/* Titre décoratif */}
+        <div className="text-center mb-2 pt-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-[#C9A96E]/40 rounded-full px-5 py-2 shadow-sm"
+          >
+            <Navigation2 size={14} className="text-[#7B3F1A]" />
+            <span className="text-[10px] font-black text-[#7B3F1A] uppercase tracking-widest">
+              Carte du Voyage
+            </span>
+            <span className="arabic-font text-[10px] text-[#A0572B] font-black">خريطة الرحلة</span>
+          </motion.div>
+        </div>
+
+        {/* ── SVG Path + Nœuds ────────────────────────────────────────────── */}
+        <div className="relative max-w-sm mx-auto px-4">
+
+          {/* Chemin SVG entre les villes */}
+          <svg
+            className="absolute inset-0 w-full pointer-events-none"
+            style={{ height: `${cities.length * 220}px` }}
+            viewBox={`0 0 320 ${cities.length * 220}`}
+            preserveAspectRatio="xMidYMid meet"
+          >
+            {/* Ombre du chemin */}
+            <path
+              d={buildPath(cities.length, 320)}
+              fill="none"
+              stroke="#7B3F1A"
+              strokeWidth="6"
+              strokeOpacity="0.08"
+              strokeLinecap="round"
+            />
+            {/* Chemin pointillé animé */}
+            <path
+              d={buildPath(cities.length, 320)}
+              fill="none"
+              stroke="#C9A96E"
+              strokeWidth="3"
+              strokeOpacity="0.5"
+              strokeLinecap="round"
+              strokeDasharray="10 18"
+              className="path-dashed"
+            />
+            {/* Chemin de base */}
+            <path
+              d={buildPath(cities.length, 320)}
+              fill="none"
+              stroke="#7B3F1A"
+              strokeWidth="2"
+              strokeOpacity="0.15"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          {/* Nœuds des villes */}
+          <div
+            className="relative z-10 flex flex-col-reverse items-center gap-0 py-8"
+            style={{ gap: 0 }}
+          >
+            {cities.map((city, index) => (
+              <div key={city.id} style={{ marginBottom: index < cities.length - 1 ? '140px' : 0 }}>
+                <CityNode
+                  city={city}
+                  onSelect={() => handleShowCitySheet(city)}
+                  isSelected={selectedCityId === city.id}
+                  delay={index * 0.12}
+                  index={index}
+                />
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
+
+        {/* ── Bottom Sheet ─────────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {displayCity && (
+            <motion.div
+              key={`backdrop-${displayCity.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 flex items-end justify-center p-4 bg-[#4E2510]/30 backdrop-blur-sm"
+              onClick={() => setSelectedCityId(null)}
+            >
+              <motion.div
+                key={displayCity.id}
+                initial={{ y: 320, opacity: 0 }}
+                animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 28 } }}
+                exit={{ y: 320, opacity: 0 }}
+                onClick={e => e.stopPropagation()}
+                className="w-full max-w-lg mb-20"
+              >
+                <div
+                  className="rounded-[2rem] p-6 shadow-2xl relative overflow-hidden border border-[#C9A96E]/30"
+                  style={{ background: 'linear-gradient(160deg, #FBF3E3 0%, #F5E8C8 100%)' }}
+                >
+                  {/* Décoration coin */}
+                  <div className="absolute top-0 right-0 w-28 h-28 opacity-10 pointer-events-none text-7xl flex items-start justify-end pr-2 pt-1">
+                    {CITY_ICONS[displayCity.id] ?? '🗺️'}
+                  </div>
+
+                  {/* Fermer */}
+                  <button
+                    onClick={() => setSelectedCityId(null)}
+                    className="absolute top-4 right-4 p-2 bg-white/60 hover:bg-white rounded-xl transition-colors z-50 border border-[#C9A96E]/30"
+                  >
+                    <X size={18} className="text-[#7B3F1A]" />
+                  </button>
+
+                  {/* En-tête */}
+                  <div className="flex items-start gap-4 mb-4 pr-10">
+                    <div
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0 border-2 border-[#D4A43E]/40 shadow-md"
+                      style={{ background: 'linear-gradient(135deg, #A0572B, #7B3F1A)' }}
+                    >
+                      {CITY_ICONS[displayCity.id] ?? '📍'}
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-[#D4A43E] rounded-full animate-pulse" />
+                        <span className="text-[9px] font-black text-[#7B3F1A] uppercase tracking-widest">
+                          {displayCity.focus}
+                        </span>
+                      </div>
+                      <h2 className="text-3xl font-headline font-black text-[#4E2510] tracking-tight leading-none">
+                        {displayCity.name}
+                      </h2>
+                      <p className="arabic-font text-sm font-black text-[#A0572B]">
+                        {displayCity.arabicName}
+                      </p>
+                    </div>
+                    {/* Badge progression */}
+                    <div
+                      className="ml-auto shrink-0 px-3 py-2 rounded-2xl flex flex-col items-center border border-[#D4A43E]/40"
+                      style={{ background: 'linear-gradient(135deg, #D4A43E22, #D4A43E44)' }}
+                    >
+                      <span className="text-[9px] font-black text-[#A87D28] uppercase tracking-widest">Progrès</span>
+                      <span className="text-[#7B3F1A] font-black text-xl leading-none mt-0.5">
+                        {Math.round((displayCity.stepNum / displayCity.totalSteps) * 100)}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description avec Toggle */}
+                  <div className="mb-5">
+                    <button 
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="flex items-center gap-2 text-[10px] font-black text-[#A0572B] uppercase tracking-widest hover:opacity-70 transition-opacity mb-2"
+                    >
+                      <span>À propos de la ville</span>
+                      <motion.div
+                        animate={{ rotate: isDescriptionExpanded ? 90 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronRight size={12} strokeWidth={3} />
+                      </motion.div>
+                    </button>
+                    
+                    <AnimatePresence>
+                      {isDescriptionExpanded && (
+                        <motion.p 
+                          initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+                          animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
+                          exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                          className="text-[#7B3F1A]/70 text-sm leading-relaxed font-bold overflow-hidden"
+                        >
+                          {displayCity.description}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Barre de progression */}
+                  <div className="mb-5 space-y-1">
+                    <div className="flex justify-between text-[10px] font-black text-[#A0572B]/60 uppercase tracking-widest">
+                      <span>Progression</span>
+                      <span>{displayCity.stepNum}/{displayCity.totalSteps} missions</span>
+                    </div>
+                    <div className="h-2.5 w-full bg-[#C9A96E]/20 rounded-full overflow-hidden border border-[#C9A96E]/20">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(displayCity.stepNum / displayCity.totalSteps) * 100}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        className="h-full rounded-full"
+                        style={{ background: 'linear-gradient(90deg, #D4A43E, #A0572B)' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Missions */}
+                  <div className="mb-5">
+                    <h4 className="text-[10px] font-black text-[#7B3F1A] uppercase tracking-widest opacity-50 mb-2">
+                      Missions de la ville
+                    </h4>
+                    <div className={cn(
+                      "space-y-2 overflow-y-auto pr-1 scrollbar-hide transition-all duration-300",
+                      isDescriptionExpanded ? "max-h-[28vh]" : "max-h-[45vh]"
+                    )}>
+                      <MissionsList cityId={displayCity.id} completedMissions={completedMissions} />
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleLaunchAdventure(displayCity)}
+                    className="btn-voyage w-full flex items-center justify-center gap-3 text-base py-4"
+                  >
+                    <span className="font-black uppercase tracking-tight">
+                      {displayCity.status === 'completed' ? 'Relever de nouveau' : "Continuer l'aventure"}
+                    </span>
+                    <ChevronRight size={22} strokeWidth={3} />
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
 }
 
-const CityNode: React.FC<{ city: City; onSelect: () => void; delay: number; isSelected: boolean }> = ({ city, onSelect, delay, isSelected }) => {
-  const isLocked = city.status === 'locked';
+// ── Calcul du chemin SVG en S ─────────────────────────────────────────────────
+function buildPath(count: number, width: number): string {
+  if (count < 2) return '';
+  const cx = width / 2;
+  const stepH = 220;
+  const amp   = 70;
+  const totalH = count * stepH;
+
+  let d = `M ${cx} ${totalH - 30}`;
+  for (let i = count - 2; i >= 0; i--) {
+    const y1 = totalH - (i + 1) * stepH + 30;
+    const y0 = totalH - i * stepH - 30;
+    const side = i % 2 === 0 ? 1 : -1;
+    const cp1x = cx + side * amp;
+    const cp2x = cx - side * amp;
+    const midy = (y1 + y0) / 2;
+    d += ` C ${cp1x} ${midy}, ${cp2x} ${midy}, ${cx} ${y0}`;
+  }
+  return d;
+}
+
+// ── Composant Nœud de ville ────────────────────────────────────────────────────
+const CityNode: React.FC<{
+  city: City;
+  onSelect: () => void;
+  isSelected: boolean;
+  delay: number;
+  index: number;
+}> = ({ city, onSelect, isSelected, delay }) => {
+  const isLocked    = city.status === 'locked';
   const isCompleted = city.status === 'completed';
-  const isActive = city.status === 'active';
+  const isActive    = city.status === 'active';
+  const style       = NODE_STYLES[city.status];
+  const icon        = CITY_ICONS[city.id] ?? '📍';
 
   return (
-    <motion.div 
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ 
-        y: 0, 
-        opacity: 1,
-        scale: isSelected ? 1.15 : 1
-      }}
-      transition={{ 
+    <motion.div
+      initial={{ y: 30, opacity: 0, scale: 0.85 }}
+      animate={{ y: 0, opacity: 1, scale: isSelected ? 1.1 : 1 }}
+      transition={{
         delay,
-        scale: { type: "spring", stiffness: 300, damping: 20 }
+        scale: { type: 'spring', stiffness: 300, damping: 22 },
       }}
-      className="flex flex-col items-center relative group"
+      className="flex flex-col items-center relative"
     >
-      {(isActive || isSelected) && (
-        <motion.div 
-          animate={{ scale: isSelected ? [1, 1.4, 1.2] : [1, 1.2, 1] }} 
-          transition={{ 
-            duration: isSelected ? 0.4 : 2, 
-            repeat: isSelected ? 3 : Infinity,
-            repeatType: "reverse"
-          }}
-          className={cn(
-            "absolute inset-0 w-32 h-32 -ml-4 -mt-4 rounded-full blur-xl",
-            isSelected ? "bg-morocco-orange/30" : "bg-morocco-gold/20"
-          )} 
-        />
+      {/* Aura extérieure pulsante */}
+      {!isLocked && (
+        <>
+          <div
+            className={cn(
+              'absolute rounded-full city-aura pointer-events-none',
+              style.aura,
+            )}
+            style={{ width: 140, height: 140, top: -22, left: -22 }}
+          />
+          {isActive && (
+            <div
+              className="absolute rounded-full pointer-events-none border-2 border-dashed border-[#D4A43E]/40 ring-spin"
+              style={{ width: 128, height: 128, top: -16, left: -16 }}
+            />
+          )}
+        </>
       )}
-      
+
+      {/* Bouton principal */}
       <button
         disabled={isLocked}
         onClick={onSelect}
         className={cn(
-          "w-24 h-24 rounded-full flex items-center justify-center relative shadow-lg transition-all",
-          isLocked && "bg-slate-200 grayscale opacity-40 border-4 border-slate-300",
-          isCompleted && "bg-morocco-emerald border-4 border-white",
-          isActive && "bg-white border-4 border-morocco-gold shadow-[0_0_20px_rgba(212,168,67,0.4)]",
-          isSelected && "ring-8 ring-morocco-gold/30 border-morocco-orange shadow-[0_0_30px_rgba(193,68,14,0.5)]"
+          'relative w-24 h-24 rounded-full flex items-center justify-center',
+          'border-[6px] shadow-2xl transition-all duration-300',
+          'focus:outline-none',
+          style.outer,
+          isSelected && 'ring-4 ring-[#D4A43E]/50 scale-110',
+          isLocked && 'opacity-40 grayscale cursor-not-allowed',
         )}
       >
-        {isCompleted ? (
-           <Check size={40} className="text-white font-bold" />
-        ) : (
+        {/* Cercle intérieur */}
+        <div
+          className={cn(
+            'w-16 h-16 rounded-full flex items-center justify-center',
+            style.inner,
+          )}
+        >
+          {isCompleted ? (
+            <div className="flex flex-col items-center">
+              <Check size={32} className="text-[#4E2510] stroke-[3px]" />
+            </div>
+          ) : isLocked ? (
+            <Lock size={28} className="text-[#9B8870]" />
+          ) : (
+            <motion.span
+              animate={{ y: [0, -6, 0], scale: [1, 1.06, 1] }}
+              transition={{ duration: 3 + Math.random(), repeat: Infinity, ease: 'easeInOut' }}
+              className="text-3xl leading-none select-none"
+            >
+              {icon}
+            </motion.span>
+          )}
+        </div>
+
+        {/* Badge statut haut */}
+        {(isActive || isSelected) && (
           <motion.div
-            animate={isSelected ? {
-              scale: [1, 1.15, 1],
-            } : (isActive ? {
-              scale: [1, 1.1, 1],
-            } : {
-              scale: 1
-            })}
-            transition={{
-              duration: isSelected ? 1.2 : 2.5,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            {city.iconUrl ? (
-              <img 
-                src={city.iconUrl} 
-                alt={city.name} 
-                className={cn(
-                  "w-12 h-12 object-contain transition-all",
-                  isSelected ? "scale-125" : "scale-100",
-                  !isActive && !isSelected && "grayscale opacity-60"
-                )} 
-              />
-            ) : (
-              <MapPin size={40} className={cn(isSelected ? "text-morocco-orange" : (isActive ? "text-morocco-gold" : "text-slate-400"))} />
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className={cn(
+              'absolute -top-3.5 px-2.5 py-0.5 rounded-full text-[8px] font-black tracking-widest uppercase shadow-md text-white',
+              isSelected ? 'bg-[#D4A43E]' : 'bg-[#7B3F1A]',
             )}
+          >
+            {isSelected ? '⚡ SÉLECTIONNÉ' : '✦ EN COURS'}
           </motion.div>
         )}
-
-        {(isActive || isSelected) && (
-          <div className={cn(
-            "absolute -top-3 text-white px-2.5 py-0.5 rounded-full text-[8px] font-black tracking-widest uppercase shadow-md transition-colors",
-            isSelected ? "bg-morocco-orange" : "bg-morocco-gold"
-          )}>
-            {isSelected ? "EXPLORATION..." : "ACTUEL"}
+        {isCompleted && !isSelected && (
+          <div className="absolute -top-3 bg-[#D4A43E] text-[#4E2510] px-2.5 py-0.5 rounded-full text-[8px] font-black tracking-widest shadow-md">
+            ✓ TERMINÉ
           </div>
         )}
 
-        <div className={cn(
-          "absolute -bottom-4 bg-white px-3 py-1 rounded-full shadow-lg border-2 flex items-center justify-center min-w-[48px] z-20 transition-all",
-          isLocked ? "border-slate-200 text-slate-400" : (isCompleted ? "border-morocco-emerald text-morocco-emerald" : "border-morocco-gold text-morocco-gold")
-        )}>
-          <span className="text-[12px] font-black tracking-tighter">
-            {isCompleted ? city.totalSteps : (isLocked ? 0 : city.stepNum)}/{city.totalSteps}
-          </span>
-        </div>
+        {/* Badge progression bas */}
+        {!isLocked && (
+          <div
+            className={cn(
+              'absolute -bottom-4 bg-white px-2.5 py-0.5 rounded-full shadow-md border-2 text-[11px] font-black z-20',
+              isCompleted ? 'border-[#D4A43E] text-[#7B3F1A]' : 'border-[#C9A96E] text-[#7B3F1A]',
+            )}
+          >
+            {isCompleted ? city.totalSteps : city.stepNum}/{city.totalSteps}
+          </div>
+        )}
+
+        {/* Étoiles décoratifs pour "complété" */}
+        {isCompleted && (
+          <>
+            <Star
+              size={12}
+              className="absolute -right-1 top-1 text-[#D4A43E] fill-[#D4A43E] star-twinkle"
+              style={{ animationDelay: '0.3s' }}
+            />
+            <Star
+              size={10}
+              className="absolute -left-1 bottom-2 text-[#D4A43E] fill-[#D4A43E] star-twinkle"
+              style={{ animationDelay: '0.8s' }}
+            />
+          </>
+        )}
       </button>
-      
-      <div className="mt-4 text-center">
-        <p className={cn("font-bold text-sm", isLocked ? "text-slate-400" : "text-morocco-emerald")}>
+
+      {/* Label ville */}
+      <div className="mt-6 text-center space-y-0.5">
+        <p className={cn(
+          'font-headline font-black text-sm tracking-tight',
+          isLocked ? 'text-[#C9A96E]/40' : 'text-[#4E2510]',
+        )}>
           {city.name}
         </p>
-        <p className={cn("arabic-font text-xs font-bold", isLocked ? "text-slate-300" : "text-morocco-gold")}>
+        <p className={cn(
+          'arabic-font text-xs font-black',
+          isLocked ? 'text-[#C9A96E]/30' : 'text-[#A0572B]',
+        )}>
           {city.arabicName}
         </p>
         {!isLocked && (
-          <div className="mt-2 w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50 mx-auto">
-            <motion.div 
+          <div className="mt-1.5 w-20 h-1.5 bg-[#C9A96E]/15 rounded-full overflow-hidden border border-[#C9A96E]/20 mx-auto">
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(isCompleted ? city.totalSteps : city.stepNum) / city.totalSteps * 100}%` }}
-              className={cn("h-full", isCompleted ? "bg-morocco-emerald" : "bg-morocco-gold")}
+              transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
+              className="h-full rounded-full"
+              style={{ background: isCompleted ? 'linear-gradient(90deg, #D4A43E, #A87D28)' : 'linear-gradient(90deg, #A0572B, #7B3F1A)' }}
             />
           </div>
         )}
       </div>
     </motion.div>
   );
-}
+};
+
+// ── Liste de missions ─────────────────────────────────────────────────────────
+const MissionsList: React.FC<{ cityId: string; completedMissions: string[] }> = ({
+  cityId, completedMissions,
+}) => {
+  const { missions, loading } = useSupabaseMissions(cityId);
+
+  if (loading) return (
+    <div className="flex justify-center py-4">
+      <Loader2 className="animate-spin text-[#C9A96E]" size={20} />
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      {missions.length > 0 ? missions.map((mission, idx) => {
+        const isDone = completedMissions.includes(mission.id);
+        return (
+          <div
+            key={mission.id}
+            className={cn(
+              'p-3 rounded-xl border-2 flex items-center justify-between transition-all',
+              isDone
+                ? 'bg-[#D4A43E]/10 border-[#D4A43E]/30'
+                : 'bg-white/60 border-[#C9A96E]/20',
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                'w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm',
+                isDone
+                  ? 'bg-[#D4A43E] text-[#4E2510]'
+                  : 'bg-[#C9A96E]/20 text-[#7B3F1A]',
+              )}>
+                {isDone ? <Check size={14} strokeWidth={3} /> : idx + 1}
+              </div>
+              <div>
+                <p className={cn('text-sm font-black', isDone ? 'text-[#7B3F1A]' : 'text-[#4E2510]')}>
+                  {mission.title_fr}
+                </p>
+                <p className="text-[10px] font-bold text-[#A0572B]/60">+{mission.xp_reward} XP</p>
+              </div>
+            </div>
+            {isDone && (
+              <div className="flex gap-0.5">
+                {[...Array(3)].map((_, i) => (
+                  <Star key={i} size={10} className="text-[#D4A43E] fill-[#D4A43E] star-twinkle" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }) : (
+        <p className="text-xs text-[#A0572B] font-bold italic py-2 text-center opacity-40">
+          Aucune mission trouvée
+        </p>
+      )}
+    </div>
+  );
+};

@@ -55,20 +55,20 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
   const league = MOCK_LEAGUES[leagueId] || MOCK_LEAGUES.bronze;
 
   return (
-    <div className="flex flex-col h-full bg-morocco-cream pb-32">
+    <div className="flex flex-col h-full bg-voyage-sand pb-32">
       {/* Header */}
-      <header className="px-6 pt-12 pb-8 bg-white border-b border-morocco-gold/10 relative overflow-hidden">
+      <header className="px-6 pt-12 pb-8 bg-white border-b border-voyage-accent/10 relative overflow-hidden">
         <div className="flex items-center gap-4 mb-6 relative z-10">
           <button 
             onClick={onBack}
-            className="p-2 hover:bg-morocco-gold/10 rounded-full transition-colors text-morocco-emerald"
+            className="p-2 hover:bg-voyage-accent/10 rounded-full transition-colors text-voyage-primary"
           >
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-xl font-black text-morocco-emerald font-headline">{league.name}</h1>
+            <h1 className="text-xl font-black text-voyage-primary font-headline">{league.name}</h1>
             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-              <Timer size={14} className="text-morocco-gold" />
+              <Timer size={14} className="text-voyage-accent" />
               <span>{league.timeLeft}</span>
             </div>
           </div>
@@ -86,19 +86,19 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
                 <div className="relative mb-2">
                   <div className={cn(
                     "rounded-full p-1 overflow-hidden",
-                    isFirst ? "w-20 h-20 ring-4 ring-morocco-gold" : "w-16 h-16 ring-2 ring-slate-200"
+                    isFirst ? "w-20 h-20 ring-4 ring-voyage-accent" : "w-16 h-16 ring-2 ring-slate-200"
                   )}>
                     <img src={player.avatar} alt={player.name} className="w-full h-full object-cover rounded-full" />
                   </div>
                   <div className={cn(
                     "absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white",
-                    isFirst ? "bg-morocco-gold" : isSecond ? "bg-slate-400" : "bg-amber-600"
+                    isFirst ? "bg-voyage-accent" : isSecond ? "bg-slate-400" : "bg-amber-600"
                   )}>
                     {player.rank}
                   </div>
                 </div>
-                <span className="text-xs font-bold text-morocco-emerald">{player.name}</span>
-                <span className="text-[10px] font-black text-morocco-gold">{player.xp} XP</span>
+                <span className="text-xs font-bold text-voyage-primary">{player.name}</span>
+                <span className="text-[10px] font-black text-voyage-accent">{player.xp} XP</span>
               </div>
             );
           })}
@@ -127,14 +127,14 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
               className={cn(
                 "flex items-center justify-between p-4 rounded-xl shadow-sm border",
                 player.isCurrentUser 
-                  ? "bg-morocco-emerald/5 border-morocco-emerald shadow-morocco-emerald/10" 
-                  : "bg-white border-morocco-gold/10"
+                  ? "bg-voyage-primary/5 border-voyage-primary shadow-voyage-primary/10" 
+                  : "bg-white border-voyage-accent/10"
               )}
             >
               <div className="flex items-center gap-4">
                 <span className={cn(
                   "w-6 text-center text-sm font-black",
-                  player.rank <= 3 ? "text-morocco-gold" : "text-slate-400"
+                  player.rank <= 3 ? "text-voyage-accent" : "text-slate-400"
                 )}>
                   {player.rank}
                 </span>
@@ -146,11 +146,11 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
                 <div>
                   <h3 className={cn(
                     "text-sm font-bold",
-                    player.isCurrentUser ? "text-morocco-emerald" : "text-slate-700"
+                    player.isCurrentUser ? "text-voyage-primary" : "text-slate-700"
                   )}>
                     {player.name} {player.isCurrentUser && "(Moi)"}
                   </h3>
-                  <div className="flex items-center gap-1 text-[10px] font-black text-morocco-gold uppercase tracking-tighter">
+                  <div className="flex items-center gap-1 text-[10px] font-black text-voyage-accent uppercase tracking-tighter">
                     <Medal size={12} />
                     <span>Maître Artisan Jr.</span>
                   </div>
@@ -158,7 +158,7 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
               </div>
 
               <div className="text-right">
-                <span className="block text-sm font-black text-morocco-emerald">{player.xp}</span>
+                <span className="block text-sm font-black text-voyage-primary">{player.xp}</span>
                 <span className="text-[10px] uppercase font-bold text-slate-300">XP</span>
               </div>
             </motion.div>
@@ -166,8 +166,8 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
         </div>
 
         {/* Promotion Zone Separator */}
-        <div className="my-8 py-4 border-y border-dashed border-morocco-gold/30 flex flex-col items-center gap-2">
-           <div className="text-[10px] font-black uppercase text-morocco-gold tracking-widest bg-white px-4 -mt-6">
+        <div className="my-8 py-4 border-y border-dashed border-voyage-accent/30 flex flex-col items-center gap-2">
+           <div className="text-[10px] font-black uppercase text-voyage-accent tracking-widest bg-white px-4 -mt-6">
              Zone Intermédiaire
            </div>
            <p className="text-center text-xs text-slate-400 max-w-[200px]">
@@ -178,7 +178,7 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
 
       {/* Floating Rank Indicator for Current User */}
       <div className="fixed bottom-32 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm">
-        <div className="bg-morocco-emerald text-white px-6 py-3 rounded-full flex items-center justify-between shadow-2xl shadow-morocco-emerald/30 border border-white/20">
+        <div className="bg-voyage-primary text-white px-6 py-3 rounded-full flex items-center justify-between shadow-2xl shadow-voyage-primary/30 border border-white/20">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-inner">
                 <img src={league.players.find(p => p.isCurrentUser)?.avatar} className="w-full h-full object-cover" />
@@ -189,7 +189,7 @@ export default function LeagueDetailScreen({ leagueId, onBack }: LeagueDetailScr
              </div>
           </div>
           <div className="text-right">
-             <Trophy size={20} className="text-morocco-gold inline mr-2" />
+             <Trophy size={20} className="text-voyage-accent inline mr-2" />
              <span className="text-xs font-bold text-white/80">Prochaine : Argent</span>
           </div>
         </div>

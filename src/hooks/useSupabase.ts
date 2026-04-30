@@ -7,41 +7,65 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { type Challenge, type Mission } from '../types';
 
-export function useSupabaseCities() {
+export function useSupabaseCities(completedCities: string[], completedMissions: string[]) {
   const [cities, setCities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCities() {
-      const { data, error } = await supabase
+    async function fetchData() {
+      // Fetch cities
+      const { data: cityData, error: cityError } = await supabase
         .from('challenges')
         .select('*')
         .order('sort_order', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching cities:', error);
+      // Fetch missions to count steps
+      const { data: missionData, error: missionError } = await supabase
+        .from('missions')
+        .select('id, city_id');
+
+      if (cityError || missionError) {
+        console.error('Error fetching data:', cityError || missionError);
       } else {
-        const mappedCities = (data || []).map(city => ({
-          id: city.city_id,
-          name: city.city_name_fr,
-          arabicName: city.city_name_ar,
-          description: city.description_fr,
-          arabicDescription: city.description_ar || '',
-          focus: city.focus_fr,
-          points: 500, // Placeholder
-          image: city.illustration_url,
-          iconUrl: city.icon_name,
-          status: 'active', // Default for now
-          stepNum: 1,
-          totalSteps: 10
-        }));
+        const mappedCities = (cityData || []).map((city, index) => {
+          const cityMissions = (missionData || []).filter(m => m.city_id === city.city_id);
+          const totalSteps = cityMissions.length || 1;
+          const completedInCity = cityMissions.filter(m => completedMissions.includes(m.id)).length;
+          
+          // A city is active if it's the first one that is NOT completed
+          const isCompleted = completedCities.includes(city.city_id);
+          let status: 'locked' | 'active' | 'completed' = isCompleted ? 'completed' : 'locked';
+          
+          // Determine if this city is the current one (active)
+          // The first incomplete city is active
+          const firstIncomplete = (cityData || []).find(c => !completedCities.includes(c.city_id));
+          if (firstIncomplete && firstIncomplete.city_id === city.city_id) {
+            status = 'active';
+          }
+
+          return {
+            id: city.city_id,
+            name: city.city_name_fr,
+            arabicName: city.city_name_ar,
+            description: city.description_fr,
+            arabicDescription: city.description_ar || '',
+            focus: city.focus_fr,
+            points: 500,
+            image: city.illustration_url,
+            iconUrl: city.icon_name,
+            status,
+            stepNum: completedInCity + 1 > totalSteps ? totalSteps : completedInCity + 1,
+            totalSteps,
+            cinematicIntro: city.cinematic_intro
+          };
+        });
         setCities(mappedCities);
       }
       setLoading(false);
     }
 
-    fetchCities();
-  }, []);
+    fetchData();
+  }, [completedCities, completedMissions]);
 
   return { cities, loading };
 }
@@ -61,7 +85,30 @@ export function useSupabaseMissions(cityId: string) {
       if (error) {
         console.error('Error fetching missions:', error);
       } else {
-        setMissions(data || []);
+        const mappedMissions = (data || []).map((m: any) => {
+          // Extract mentor info from JSONB profils if flat fields are empty
+          let mentorName = m.mentor_name;
+          let mentorRole = m.mentor_role;
+          if (!mentorName && m.profils && m.profils.length > 0) {
+            mentorName = m.profils[0].nom;
+            mentorRole = m.profils[0].profession;
+          }
+
+          // Extract script_opening from narration JSONB if flat field is empty
+          let scriptOpening = m.script_opening;
+          if (!scriptOpening && m.narration?.intro?.texte) {
+            scriptOpening = m.narration.intro.texte;
+          }
+
+          return {
+            ...m,
+            mentor_name: mentorName,
+            mentor_role: mentorRole,
+            script_opening: scriptOpening,
+            narration: m.narration
+          };
+        });
+        setMissions(mappedMissions);
       }
       setLoading(false);
     }
@@ -87,45 +134,47 @@ export function useSupabaseQuestions(missionId: string) {
       if (error) {
         console.error('Error fetching questions:', error);
       } else {
-        // Map Supabase question to app Challenge type
         const mappedQuestions: Challenge[] = (data || []).map((q: any) => {
           const type = mapType(q.question_type);
           let options = q.options;
-          let content = q.presentation_fr ? [q.presentation_fr] : undefined;
-
-          if (type === 'fill-in-blanks') {
-            options = q.options?.map((opt: any, idx: number) => ({
-              id: String(idx),
-              text: typeof opt === 'string' ? opt : (opt.text_fr || opt.label || '')
-            }));
-            content = [q.question_fr];
-          } else if (type === 'matching') {
-            // For matching, we might need a special structure
-            options = q.options?.pairs?.map((p: any, idx: number) => ({
-              id: String(idx),
-              text: p.item,
-              match: p.match
-            }));
-          } else {
-            options = q.options?.map((opt: any, idx: number) => ({
+          let steps = undefined;
+          
+          // Handle different option structures
+          if (Array.isArray(q.options)) {
+            options = q.options.map((opt: any, idx: number) => ({
               id: opt.id || String(idx),
-              text: opt.text_fr || opt.label || opt.text || '',
-              label: opt.label || String.fromCharCode(65 + idx)
+              text: opt.text_fr || opt.label || opt.text || (typeof opt === 'string' ? opt : ''),
+              label: opt.label || String.fromCharCode(65 + idx),
+              match: opt.match || ''
             }));
+          } else if (q.options?.pairs) {
+             // For matching
+             options = q.options.pairs.map((p: any, idx: number) => ({
+               id: String(idx),
+               text: p.item,
+               match: p.match
+             }));
+          } else if (q.options?.steps) {
+             // For scenario-cascade
+             steps = q.options.steps;
           }
 
           return {
             id: q.id,
             type,
-            title: q.question_fr.substring(0, 30) + '...',
+            title: q.question_fr ? (q.question_fr.length > 40 ? q.question_fr.substring(0, 40) + '...' : q.question_fr) : 'Défi',
             question: q.question_fr,
             arabicQuestion: q.question_ar,
             options,
+            steps,
             correctOptionId: q.correct_answer,
             hint: q.hint_fr,
-            content,
+            content: q.presentation_fr ? [q.presentation_fr] : (q.question_fr ? [q.question_fr] : []),
             feedbackPositive: q.feedback_positive_fr,
-            feedbackNegative: q.feedback_negative_fr
+            feedbackNegative: q.feedback_negative_fr,
+            presentation_fr: q.presentation_fr,
+            explanation_fr: q.explanation_fr,
+            context_dialogue: q.context_dialogue
           };
         });
         setQuestions(mappedQuestions);
@@ -144,35 +193,48 @@ function mapType(dbType: string): any {
   switch (normalized) {
     case 'qcm':
     case 'multiple-choice':
+      return 'multiple-choice';
     case 'vrai-faux':
+    case 'vrai_faux':
     case 'true-false':
+      return 'true-false';
     case 'scenario-decision':
-    case 'scenario-cascade':
-    case 'team-roles':
-    case 'time-attack':
-    case 'audio-challenge':
-      return 'decision';
-    case 'error-detection':
-    case 'glitch':
-      return 'glitch';
+      return 'scenario-decision';
+    case 'scenario-dialogue':
+      return 'scenario-dialogue';
     case 'fill-blanks':
+    case 'fill_blanks':
     case 'fill-in-blanks':
       return 'fill-in-blanks';
+    case 'matching':
+      return 'matching';
     case 'ranking':
     case 'sorting-challenge':
       return 'ranking';
-    case 'matching':
-      return 'matching';
-    case 'short-answer':
-      return 'short-answer';
+    case 'scenario-cascade':
+      return 'scenario-cascade';
     case 'puzzle-riddle':
     case 'riddle':
-      return 'riddle';
-    case 'scenario-dialogue':
-      return 'dialogue';
+    case 'puzzle_riddle':
+      return 'puzzle-riddle';
+    case 'short-answer':
+    case 'short_answer':
+      return 'short-answer';
+    case 'glitch':
+    case 'error-detection':
+    case 'error_detection':
+      return 'glitch';
+    case 'zellige':
     case 'mosaic':
-      return 'mosaic';
+      return 'zellige';
+    case 'team-roles':
+    case 'team_roles':
+      return 'team-roles';
+    case 'time-attack':
+    case 'time_attack':
+      return 'time-attack';
     default:
-      return 'decision';
+      return 'multiple-choice';
   }
 }
+

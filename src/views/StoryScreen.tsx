@@ -14,9 +14,9 @@ interface StoryScreenProps {
   onStartChallenge: () => void;
 }
 
-export default function StoryScreen({ city, onClose, onStartChallenge }: StoryScreenProps) {
+export default function StoryScreen({ city, onClose, onStartChallenge, mission }: StoryScreenProps) {
   return (
-    <div className="h-full w-full relative overflow-hidden bg-slate-900">
+    <div className="h-full w-full relative overflow-hidden bg-white">
       {/* Hero Background Illustration */}
       <motion.div 
         initial={{ scale: 1.1 }}
@@ -26,34 +26,31 @@ export default function StoryScreen({ city, onClose, onStartChallenge }: StorySc
         <img 
           src={city.image} 
           alt={city.name} 
-          className="w-full h-full object-cover opacity-80" 
+          className="w-full h-full object-cover opacity-30" 
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-        <div className="absolute inset-0 zellige-pattern opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
       </motion.div>
 
       {/* Header Overlay */}
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-transparent text-white">
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-          <X size={24} />
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-transparent">
+        <button onClick={onClose} className="p-2 hover:bg-voyage-accent/10 rounded-xl transition-colors">
+          <X size={24} className="text-voyage-primary/60" />
         </button>
 
         <div className="flex-1 px-8">
-          <div className="h-2.5 w-full bg-white/20 backdrop-blur-md rounded-full overflow-hidden">
+          <div className="h-3 w-full bg-voyage-accent/10 rounded-full overflow-hidden border-2 border-voyage-accent/20">
             <motion.div 
               initial={{ width: 0 }}
-              animate={{ width: '25%' }}
-              className="h-full bg-gradient-to-r from-morocco-gold to-yellow-400 rounded-full shadow-lg" 
+              animate={{ width: '100%' }}
+              transition={{ duration: 0.5 }}
+              className="h-full bg-voyage-primary rounded-full shadow-lg" 
             />
-          </div>
-          <div className="mt-2 text-center text-[10px] font-headline font-bold tracking-[0.2em] text-white uppercase opacity-80">
-            {mission?.title_fr || `DÉFI 1 — ${city.name}`}
           </div>
         </div>
 
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-          <MoreVertical size={24} />
+        <button className="p-2 hover:bg-voyage-accent/10 rounded-xl transition-colors">
+          <MoreVertical size={24} className="text-voyage-primary/60" />
         </button>
       </header>
 
@@ -63,80 +60,77 @@ export default function StoryScreen({ city, onClose, onStartChallenge }: StorySc
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-          className="bg-white/90 backdrop-blur-2xl rounded-t-[2.5rem] p-8 pb-12 shadow-2xl border-t border-white/20"
+          className="bg-white rounded-t-[3rem] p-8 pb-12 shadow-[0_-20px_50px_rgba(0,0,0,0.1)] border-t-2 border-voyage-accent/20 max-h-[85vh] overflow-y-auto scrollbar-hide"
         >
-          <div className="max-w-md mx-auto space-y-6">
-            {/* City Badge */}
+          <div className="max-w-md mx-auto space-y-8">
+            {/* Mission Type Badge */}
             <div className="flex justify-center">
-              <div className="inline-flex items-center gap-3 px-5 py-2 bg-morocco-emerald/5 rounded-full border border-morocco-emerald/10">
-                <MapPin className="text-morocco-gold" size={18} fill="currentColor" fillOpacity={0.2} />
-                <span className="font-headline font-bold text-morocco-emerald tracking-tight">
-                  {city.name} | {city.arabicName}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-voyage-accent/10 rounded-full border-2 border-voyage-accent/20">
+                <BookOpen className="text-voyage-accent" size={14} />
+                <span className="font-headline font-black text-voyage-accent text-[10px] uppercase tracking-widest">
+                   Mission {city.stepNum} • {city.name}
                 </span>
               </div>
             </div>
 
             {/* Text Content */}
-            <div className="text-center space-y-3">
-              <h1 className="font-headline font-extrabold text-2xl text-morocco-emerald leading-tight">
-                {mission?.title_fr || city.name}
+            <div className="text-center space-y-4">
+              <h1 className="font-headline font-black text-3xl text-voyage-primary tracking-tight leading-tight">
+                {mission?.title_fr || "Prêt pour le défi ?"}
               </h1>
-              <div className="space-y-3 px-2">
-                <p className="text-slate-600 font-medium leading-relaxed">
+              
+              <div className="bg-voyage-accent/5 rounded-3xl p-6 border-2 border-voyage-accent/20 relative">
+                <div className="absolute -top-4 left-6 bg-white border-2 border-voyage-accent/20 px-3 py-1 rounded-full text-[9px] font-black text-voyage-primary uppercase tracking-widest">
+                  Objectif
+                </div>
+                <p className="text-voyage-primary/80 font-bold leading-relaxed">
                   {mission?.description_fr || city.description}
                 </p>
                 {mission?.description_ar && (
-                  <p className="text-morocco-gold font-arabic text-sm leading-relaxed" dir="rtl">
+                  <p className="text-voyage-accent font-bold text-lg mt-4 arabic-font" dir="rtl">
                     {mission.description_ar}
                   </p>
                 )}
               </div>
 
-              {/* Dialogue Box */}
-              {(mission?.script_opening || mission?.mentor_name) && (
-                <div className="bg-morocco-emerald/5 rounded-2xl p-4 border-l-4 border-morocco-emerald mt-2 text-left">
-                  <p className="text-sm italic text-slate-600">
-                    <span className="font-bold text-morocco-emerald text-xs uppercase block mb-1">
-                      {mission.mentor_name || "Mentor"} :
-                    </span> 
-                    "{mission.script_opening || "Prêt pour l'aventure ?"}"
+              {/* Mentor Dialogue */}
+              <div className="flex items-start gap-4 text-left mt-6">
+                <div className="w-16 h-16 rounded-2xl bg-voyage-accent flex-shrink-0 flex items-center justify-center border-b-4 border-voyage-accent-dark">
+                  <User size={32} className="text-white" />
+                </div>
+                <div className="bg-white border-2 border-voyage-accent/20 p-4 rounded-2xl rounded-tl-none relative shadow-sm">
+                  <div className="absolute -left-2 top-0 w-2 h-2 bg-white border-l-2 border-t-2 border-voyage-accent/20 -rotate-45" />
+                  <p className="text-sm font-bold text-voyage-primary italic">
+                    <span className="text-[10px] uppercase tracking-widest text-voyage-primary/60 block not-italic mb-1">Coach Yassine</span>
+                    "{mission?.script_opening || "Allez, on y va ! Montre-moi ce que tu sais faire."}"
                   </p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* CTA Action */}
-            <div className="pt-2">
+            <div className="pt-4">
               <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onStartChallenge}
-                className="w-full bg-morocco-emerald text-white font-headline font-bold py-5 rounded-xl shadow-xl flex items-center justify-center gap-3 transition-colors hover:bg-morocco-emerald/90"
+                className="btn-voyage-primary w-full text-xl py-5 flex items-center justify-center gap-3"
               >
-                <span>DÉCOUVRIR LE DÉFI</span>
-                <ArrowRight size={20} />
+                <span className="font-black uppercase tracking-tight">C'est parti !</span>
+                <ArrowRight size={24} strokeWidth={3} />
               </motion.button>
 
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden">
-                         <User size={16} className="text-slate-400" />
+              <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-3">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="w-9 h-9 rounded-full border-2 border-white bg-voyage-accent/10 flex items-center justify-center overflow-hidden">
+                         <User size={20} className="text-voyage-primary/40" />
                       </div>
                     ))}
-                    <div className="w-8 h-8 rounded-full border-2 border-white bg-morocco-gold flex items-center justify-center text-[10px] font-bold text-white">
-                      +12
-                    </div>
                   </div>
-                  <span className="text-slate-400 text-xs font-semibold tracking-wide">
-                    12 autres voyageurs relèvent le défi
+                  <span className="text-voyage-primary/60 text-[10px] font-black uppercase tracking-widest opacity-60">
+                    +15 voyageurs actifs
                   </span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
-                   <BookOpen size={12} fill="currentColor" fillOpacity={0.2} />
-                   FOCUS : {city.focus}
                 </div>
               </div>
             </div>
@@ -146,3 +140,4 @@ export default function StoryScreen({ city, onClose, onStartChallenge }: StorySc
     </div>
   );
 }
+

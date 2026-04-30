@@ -87,23 +87,23 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
   };
 
   return (
-    <div className="h-full w-full bg-[#f3f7fb] text-[#2a2f32] flex flex-col font-body overflow-hidden">
+    <div className="h-full w-full bg-voyage-sand text-voyage-primary-dark flex flex-col font-sans overflow-hidden">
       {/* TopAppBar */}
-      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#ecf1f6] transition-all">
+      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-white border-b border-voyage-accent/10 transition-all">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
-            className="p-2 hover:bg-slate-100 transition-all rounded-full scale-95 duration-150"
+            className="p-2 hover:bg-voyage-sand transition-all rounded-full scale-95 duration-150"
           >
-            <ArrowLeft className="text-blue-500" size={24} />
+            <ArrowLeft className="text-voyage-primary" size={24} />
           </button>
           <div className="flex flex-col">
             <span className="text-xl font-bold text-on-surface leading-none">Lesson Tracker</span>
             <div className="flex items-center gap-2 mt-1">
-              <div className="w-24 h-2 bg-[#d7dee3] rounded-full overflow-hidden">
+              <div className="w-24 h-2 bg-voyage-accent/10 rounded-full overflow-hidden">
                 <motion.div 
                    animate={{ width: `${(Object.keys(matches).length / LEFT_ITEMS.length) * 100}%` }}
-                   className="h-full bg-gradient-to-r from-[#88ea92] to-[#96f89f] shadow-[0_0_8px_rgba(150,248,159,0.5)]" 
+                   className="h-full bg-voyage-accent shadow-[0_0_8px_rgba(212,164,62,0.5)]" 
                 />
               </div>
               <span className="text-[10px] font-bold text-slate-500">
@@ -112,16 +112,16 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
             </div>
           </div>
         </div>
-        <div className="bg-[#f99a3f]/20 px-4 py-1.5 rounded-full flex items-center gap-2">
-           <span className="text-[#8b4b00] font-bold text-sm tracking-tight">⭐ 120</span>
+        <div className="bg-voyage-accent/20 px-4 py-1.5 rounded-full flex items-center gap-2">
+           <span className="text-voyage-primary-dark font-black text-sm tracking-tight">⭐ 120</span>
         </div>
       </header>
 
       {/* Main Canvas */}
       <main className="flex-grow pt-24 pb-32 px-6 max-w-2xl mx-auto w-full flex flex-col items-center overflow-y-auto">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-extrabold text-[#005ab2] mb-2 tracking-tight">Connect the Dots!</h1>
-          <p className="text-slate-500 font-medium">Drag a word on the left to its matching category on the right.</p>
+          <h1 className="text-3xl font-black text-voyage-primary mb-2 tracking-tight">Connectez les Savoirs !</h1>
+          <p className="text-slate-500 font-medium">Reliez chaque mot à sa catégorie correspondante.</p>
         </div>
 
         {/* Matching Interaction Area */}
@@ -140,7 +140,7 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
                     animate={{ pathLength: 1, opacity: 0.6 }}
                     x1={start.x} y1={start.y}
                     x2={end.x} y2={end.y}
-                    stroke="#005ab2"
+                    stroke="var(--color-voyage-primary)"
                     strokeWidth="4"
                     strokeDasharray="8,8"
                   />
@@ -160,8 +160,8 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
                     onClick={() => handleLeftClick(item.id)}
                     whileTap={{ scale: 0.95 }}
                     className={cn(
-                      "p-5 rounded-xl shadow-[0_4px_0_0_#d7dee3] flex items-center justify-between border-2 transition-all cursor-pointer",
-                      matched ? "bg-[#64a1ff] text-white border-[#005ab2] shadow-[0_4px_0_0_#004e9d]" : (selectedLeft === item.id ? "bg-white border-[#005ab2] ring-2 ring-[#005ab2]/20" : "bg-white border-transparent")
+                      "p-5 rounded-xl shadow-[0_4px_0_0_var(--color-voyage-secondary-light)] flex items-center justify-between border-2 transition-all cursor-pointer",
+                      matched ? "bg-voyage-primary text-white border-voyage-primary shadow-[0_4px_0_0_var(--color-voyage-primary-dark)]" : (selectedLeft === item.id ? "bg-white border-voyage-accent ring-2 ring-voyage-accent/20" : "bg-white border-transparent")
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -171,8 +171,8 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
                     <div 
                       id={`anchor-${item.id}`}
                       className={cn(
-                        "w-4 h-4 rounded-full absolute -right-2 ring-4 ring-[#f3f7fb] transition-colors",
-                        matched ? "bg-[#005ab2]" : "bg-[#d7dee3]"
+                        "w-4 h-4 rounded-full absolute -right-2 ring-4 ring-voyage-sand transition-colors",
+                        matched ? "bg-voyage-primary" : "bg-voyage-secondary-light"
                       )} 
                     />
                   </motion.div>
@@ -193,15 +193,15 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
                     onClick={() => handleRightClick(item.id)}
                     whileTap={{ scale: 0.95 }}
                     className={cn(
-                      "p-5 rounded-xl shadow-[0_4px_0_0_#d7dee3] flex items-center justify-start border-2 transition-all cursor-pointer",
-                      matched ? "bg-[#64a1ff] text-white border-[#005ab2] shadow-[0_4px_0_0_#004e9d]" : "bg-white border-transparent hover:bg-slate-50"
+                      "p-5 rounded-xl shadow-[0_4px_0_0_var(--color-voyage-secondary-light)] flex items-center justify-start border-2 transition-all cursor-pointer",
+                      matched ? "bg-voyage-primary text-white border-voyage-primary shadow-[0_4px_0_0_var(--color-voyage-primary-dark)]" : "bg-white border-transparent hover:bg-slate-50"
                     )}
                   >
                     <div 
                       id={`anchor-${item.id}`}
                       className={cn(
-                        "w-4 h-4 rounded-full absolute -left-2 ring-4 ring-[#f3f7fb] transition-colors",
-                        matched ? "bg-[#005ab2]" : "bg-[#d7dee3]"
+                        "w-4 h-4 rounded-full absolute -left-2 ring-4 ring-voyage-sand transition-colors",
+                        matched ? "bg-voyage-primary" : "bg-voyage-secondary-light"
                       )} 
                     />
                     <span className="font-bold text-lg ml-2">{item.text}</span>
@@ -214,8 +214,8 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
 
         {/* Feedback Illustration */}
         <div className="mt-12 w-full max-w-lg">
-          <div className="bg-white/50 backdrop-blur-sm p-6 rounded-xl flex items-center gap-4 border-l-4 border-[#005ab2] shadow-sm">
-            <Info className="text-blue-500 shrink-0" size={32} />
+          <div className="bg-white/50 backdrop-blur-sm p-6 rounded-xl flex items-center gap-4 border-l-4 border-voyage-primary shadow-sm">
+            <Info className="text-voyage-primary shrink-0" size={32} />
             <p className="text-sm font-medium text-slate-600">
               {Object.keys(matches).length > 0 
                 ? "Excellent travail ! Vous avez trouvé une paire. Continuez pour devenir un expert !"
@@ -233,11 +233,11 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
            className={cn(
              "w-full max-w-md py-4 px-8 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-3 transition-all active:scale-95",
              Object.keys(matches).length === LEFT_ITEMS.length 
-               ? "bg-[#005ab2] text-white shadow-[#004e9d]/30" 
+               ? "bg-voyage-primary text-white shadow-voyage-primary/30" 
                : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
            )}
          >
-           <span>Submit Pairs</span>
+           <span>Valider les paires</span>
            <CheckCircle2 size={24} />
          </button>
          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
@@ -251,21 +251,21 @@ export default function VocabularyMatchScreen({ onBack }: VocabularyMatchScreenP
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 bg-[#006a27]/90 backdrop-blur-md flex items-center justify-center p-8"
+            className="fixed inset-0 z-50 bg-voyage-primary/90 backdrop-blur-md flex items-center justify-center p-8"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               className="bg-white rounded-3xl p-10 max-w-sm w-full text-center shadow-2xl"
             >
-              <div className="w-20 h-20 bg-[#96f89f] rounded-full mx-auto flex items-center justify-center mb-6">
-                <CheckCircle2 className="text-[#006a27]" size={48} />
+              <div className="w-20 h-20 bg-voyage-accent/20 rounded-full mx-auto flex items-center justify-center mb-6">
+                <CheckCircle2 className="text-voyage-accent" size={48} />
               </div>
-              <h2 className="text-3xl font-black text-[#006a27] mb-2 font-headline">Félicitations !</h2>
+              <h2 className="text-3xl font-black text-voyage-primary mb-2 font-headline">Félicitations !</h2>
               <p className="text-slate-500 mb-8 font-medium">Vous maîtrisez parfaitement ce vocabulaire.</p>
               <button 
                 onClick={onBack}
-                className="w-full bg-[#006a27] text-white py-4 rounded-xl font-bold text-lg shadow-[0_4px_0_0_#005d21] hover:scale-105 active:translate-y-1 active:shadow-none transition-all"
+                className="w-full bg-voyage-accent text-voyage-primary-dark py-4 rounded-xl font-black text-lg shadow-[0_4px_0_0_var(--color-voyage-accent-dark)] hover:scale-105 active:translate-y-1 active:shadow-none transition-all"
               >
                 Continuer
               </button>

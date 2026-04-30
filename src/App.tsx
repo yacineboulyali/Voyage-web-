@@ -26,6 +26,8 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.Splash);
   const [selectedCity, setSelectedCity] = useState<City | null>(null); 
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  const [completedCities, setCompletedCities] = useState<string[]>([]);
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
   const [userStats, setUserStats] = useState({
     xp: 1450,
@@ -43,21 +45,49 @@ export default function App() {
   useEffect(() => {
     async function fetchFirstMission() {
       if (selectedCity) {
-        const { data, error } = await supabase
+        const { data: missions, error } = await supabase
           .from('missions')
           .select('*')
           .eq('city_id', selectedCity.id)
-          .order('sort_order', { ascending: true })
-          .limit(1)
-          .single();
+          .order('sort_order', { ascending: true });
         
-        if (!error && data) {
-          setSelectedMission(data);
+        if (!error && missions && missions.length > 0) {
+          // Find the first incomplete mission
+          const nextMission = missions.find(m => !completedMissions.includes(m.id)) || missions[0];
+          setSelectedMission(nextMission);
         }
       }
     }
     fetchFirstMission();
-  }, [selectedCity]);
+  }, [selectedCity, completedMissions]);
+
+  const handleMissionComplete = (mission: Mission) => {
+    setCompletedMissions(prev => [...prev, mission.id]);
+    setUserStats(prev => ({ ...prev, xp: prev.xp + mission.xp_reward, stars: prev.stars + 5 }));
+    
+    // Check if there are more missions in this city
+    async function checkNext() {
+      if (selectedCity) {
+        const { data: missions } = await supabase
+          .from('missions')
+          .select('*')
+          .eq('city_id', selectedCity.id)
+          .order('sort_order', { ascending: true });
+        
+        const currentIdx = missions?.findIndex(m => m.id === mission.id) ?? -1;
+        if (missions && currentIdx < missions.length - 1) {
+          // There is another mission in this city
+          setSelectedMission(missions[currentIdx + 1]);
+          setCurrentScreen(Screen.Story);
+        } else {
+          // City complete
+          setCompletedCities(prev => [...prev, selectedCity.id]);
+          setCurrentScreen(Screen.LevelComplete);
+        }
+      }
+    }
+    checkNext();
+  };
 
   const showNavBar = [Screen.Map, Screen.Profile, Screen.Settings, Screen.GrammarQuest, Screen.League, Screen.LeagueDetail, Screen.LeagueCreate].includes(currentScreen);
 
@@ -71,6 +101,8 @@ export default function App() {
         return (
           <MapJourneyScreen 
             stats={userStats} 
+            completedCities={completedCities}
+            completedMissions={completedMissions}
             onSelectCity={(city) => {
               setSelectedCity(city);
               setCurrentScreen(Screen.Story);
@@ -78,7 +110,7 @@ export default function App() {
           />
         );
       case Screen.Story:
-        if (!selectedCity) return <MapJourneyScreen stats={userStats} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
+        if (!selectedCity) return <MapJourneyScreen stats={userStats} completedCities={completedCities} completedMissions={completedMissions} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
         return (
           <StoryScreen 
             city={selectedCity} 
@@ -88,11 +120,12 @@ export default function App() {
           />
         );
       case Screen.Challenge:
-        if (!selectedCity) return <MapJourneyScreen stats={userStats} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
+        if (!selectedCity || !selectedMission) return <MapJourneyScreen stats={userStats} completedCities={completedCities} completedMissions={completedMissions} onSelectCity={(city) => { setSelectedCity(city); setCurrentScreen(Screen.Story); }} />;
         return (
           <ChallengeScreen 
             city={selectedCity} 
-            onComplete={() => setCurrentScreen(Screen.LevelComplete)}
+            missionId={selectedMission.id}
+            onComplete={() => handleMissionComplete(selectedMission)}
             onBack={() => setCurrentScreen(Screen.Story)}
           />
         );
@@ -146,7 +179,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative h-screen w-full bg-morocco-cream overflow-hidden flex flex-col">
+    <div className="relative h-screen w-full bg-white overflow-hidden flex flex-col">
       <div className="flex-grow overflow-hidden relative">
         <AnimatePresence mode="wait">
           <motion.div

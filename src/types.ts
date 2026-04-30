@@ -50,6 +50,7 @@ export type City = {
   status: 'locked' | 'active' | 'completed';
   stepNum: number;
   totalSteps: number;
+  cinematicIntro?: string;
 };
 
 export type Mission = {
@@ -66,20 +67,31 @@ export type Mission = {
   mentor_role?: string;
   script_opening?: string;
   script_closing?: string;
+  narration?: {
+    intro?: { texte: string; consigne?: string; objectif?: string };
+    conclusion?: { texte_reussite: string };
+  };
 };
 
 export type Challenge = {
   id: string;
-  type: 'glitch' | 'riddle' | 'decision' | 'fill-in-blanks' | 'mosaic' | 'ranking' | 'matching' | 'short-answer' | 'dialogue';
+  type: 'multiple-choice' | 'true-false' | 'scenario-decision' | 'scenario-dialogue' | 'fill-in-blanks' | 'matching' | 'ranking' | 'scenario-cascade' | 'puzzle-riddle' | 'short-answer' | 'glitch' | 'zellige' | 'team-roles' | 'time-attack' | 'decision' | 'dialogue' | 'minigame' | 'mosaic' | 'riddle';
   title: string;
   question: string;
-  options?: { id: string; text: string; label?: string; match?: string }[];
+  options?: any; // Made flexible to support array or steps object
   correctOptionId?: string;
-  content?: string[]; // For glitch or fill-in-blanks
+  content?: string[]; 
   hint?: string;
   arabicQuestion?: string;
   feedbackPositive?: string;
   feedbackNegative?: string;
+  presentation_fr?: string;
+  explanation_fr?: string;
+  context_dialogue?: string;
+  steps?: {
+    question: string;
+    responses: { id: string; text: string }[];
+  }[];
 };
 
 export const CITIES: City[] = [
