@@ -2,8 +2,10 @@ import { motion } from 'motion/react';
 import { BookOpen, Sparkles, Languages, Compass, ChevronRight, PlayCircle, Star, Heart } from 'lucide-react';
 import TopAppBar from '../components/TopAppBar';
 import { cn } from '../lib/utils';
+import { useAudio } from '../hooks/useAudio';
 
 export default function GrammarQuestScreen() {
+  const { playSound } = useAudio();
   const stats = { xp: 1450, stars: 120, level: 4 };
 
   const modules = [
@@ -62,7 +64,10 @@ export default function GrammarQuestScreen() {
               <p className="text-white/80 font-bold max-w-[200px]">
                 Explore les modules thématiques pour progresser plus vite.
               </p>
-              <button className="bg-white text-voyage-accent font-black px-6 py-3 rounded-2xl border-b-4 border-white/20 active:border-b-0 active:translate-y-[2px] transition-all uppercase tracking-tight text-sm">
+              <button 
+                onClick={() => playSound('click')}
+                className="bg-white text-voyage-accent font-black px-6 py-3 rounded-2xl border-b-4 border-white/20 active:border-b-0 active:translate-y-[2px] transition-all uppercase tracking-tight text-sm"
+              >
                  Commencer un module
               </button>
            </div>
@@ -97,6 +102,7 @@ export default function GrammarQuestScreen() {
                   key={i}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => playSound('click')}
                   className={cn("p-6 rounded-[2rem] border-2 border-b-4 flex items-center gap-6 cursor-pointer transition-all", module.bg, module.border)}
                 >
                    <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-md border-b-4 border-duo-swan/50 shrink-0">
@@ -140,7 +146,12 @@ export default function GrammarQuestScreen() {
               <h3 className="text-xl font-black text-duo-eel uppercase tracking-tight">Le Défi du Jour</h3>
               <p className="text-duo-wolf font-bold">Réussis 3 exercices sans faute pour gagner 50 XP bonus !</p>
            </div>
-           <button className="btn-voyage-primary px-8 py-3 w-full">RELEVER LE DÉFI</button>
+           <button 
+             onClick={() => playSound('click')}
+             className="btn-voyage-primary px-8 py-3 w-full"
+           >
+             RELEVER LE DÉFI
+           </button>
         </section>
 
       </main>

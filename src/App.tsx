@@ -154,7 +154,7 @@ export default function App() {
       case Screen.VocabularyMatch:
         return <VocabularyMatchScreen onBack={() => setCurrentScreen(Screen.Map)} />;
       case Screen.Profile:
-        return <ProfileScreen onBack={() => setCurrentScreen(Screen.Map)} />;
+        return <ProfileScreen onBack={() => setCurrentScreen(Screen.Map)} onSettings={() => setCurrentScreen(Screen.Settings)} />;
       case Screen.Settings:
         return <SettingsScreen onBack={() => setCurrentScreen(Screen.Map)} />;
       case Screen.LevelComplete:

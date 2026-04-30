@@ -5,7 +5,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Sun, Moon, Laptop, Save, Volume2, VolumeX, Music, Bell, Play } from 'lucide-react';
+import { User, Sun, Moon, Laptop, Save, Volume2, VolumeX, Music, Bell, Play, ZoomIn } from 'lucide-react';
+import { useSettings, type FontSize } from '../contexts/SettingsContext';
 import TopAppBar from '../components/TopAppBar';
 import { cn } from '../lib/utils';
 import { useAudio } from '../hooks/useAudio';
@@ -18,6 +19,7 @@ export default function SettingsScreen({ onBack }: SettingsScreenProps) {
   const [userName, setUserName] = useState('Ahmed_AlMaghribi');
   const [displayMode, setDisplayMode] = useState('clair');
   const [language, setLanguage] = useState('fr');
+  const { fontSize, setFontSize } = useSettings();
   const { settings: audio, updateSettings: updateAudio, playSound } = useAudio();
 
   return (
@@ -59,6 +61,45 @@ export default function SettingsScreen({ onBack }: SettingsScreenProps) {
               value={userName} 
               onChange={(e) => setUserName(e.target.value)}
             />
+          </div>
+        </section>
+
+        {/* Zoom du texte */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-1 rounded-full bg-duo-yellow" />
+            <h3 className="text-lg font-headline font-black text-voyage-primary tracking-tight flex items-center gap-2">
+              Taille du texte <span className="font-normal text-slate-300 text-xs">حجم النص</span>
+            </h3>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: 'small', label: 'Petit', ar: 'صغير', size: 16 },
+              { id: 'medium', label: 'Moyen', ar: 'متوسط', size: 19 },
+              { id: 'large', label: 'Grand', ar: 'كبير', size: 22 },
+              { id: 'extra-large', label: 'Très Grand', ar: 'كبير جداً', size: 25 },
+            ].map((size) => (
+              <button
+                key={size.id}
+                onClick={() => {
+                  setFontSize(size.id as FontSize);
+                  playSound('click');
+                }}
+                className={cn(
+                  "flex items-center gap-3 p-4 rounded-2xl transition-all border-2 text-left",
+                  fontSize === size.id 
+                    ? "bg-voyage-primary text-white border-voyage-primary shadow-lg" 
+                    : "bg-white text-slate-400 border-transparent hover:border-slate-100 shadow-sm"
+                )}
+              >
+                <ZoomIn size={size.size} className={fontSize === size.id ? "text-white" : "text-slate-300"} />
+                <div>
+                  <div className="text-xs font-black uppercase tracking-widest leading-none">{size.label}</div>
+                  <div className="text-[9px] opacity-60 font-bold mt-1 leading-none">{size.ar}</div>
+                </div>
+              </button>
+            ))}
           </div>
         </section>
 

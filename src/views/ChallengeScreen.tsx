@@ -4,6 +4,7 @@ import { Lightbulb, TrendingUp, CheckCircle2, Loader2, X, Map as MapIcon, Info, 
 import { type City, type Challenge } from '../types';
 import { cn } from '../lib/utils';
 import { useSupabaseQuestions } from '../hooks/useSupabase';
+import { useAudio } from '../hooks/useAudio';
 
 interface ChallengeScreenProps {
   city: City;
@@ -13,6 +14,7 @@ interface ChallengeScreenProps {
 }
 
 export default function ChallengeScreen({ city, missionId, onComplete, onBack }: ChallengeScreenProps) {
+  const { playSound } = useAudio();
   const { questions, loading: loadingQuestions } = useSupabaseQuestions(missionId);
   
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -57,6 +59,11 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
   const handleConfirm = () => {
     if (canConfirm()) {
       setShowFeedback(true);
+      if (isCorrect()) {
+        playSound('correct');
+      } else {
+        playSound('wrong');
+      }
     }
   };
 
@@ -97,6 +104,7 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
     } else {
+      playSound('success');
       onComplete();
     }
   };
@@ -202,7 +210,10 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                 <button
                   key={opt.id}
                   disabled={showFeedback}
-                  onClick={() => setSelectedOptionId(opt.id)}
+                  onClick={() => {
+                    playSound('click');
+                    setSelectedOptionId(opt.id);
+                  }}
                   className={cn(
                     "w-full flex items-center gap-4 p-5 text-left rounded-2xl border-2 transition-all duration-100 group relative",
                     selectedOptionId === opt.id 
@@ -242,7 +253,10 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                   <button
                     key={opt.id}
                     disabled={showFeedback}
-                    onClick={() => setSelectedOptionId(opt.id)}
+                    onClick={() => {
+                      playSound('click');
+                      setSelectedOptionId(opt.id);
+                    }}
                     className={cn(
                       "w-full p-4 text-left rounded-2xl border-2 transition-all group relative",
                       selectedOptionId === opt.id 
@@ -282,6 +296,7 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                       key={opt.id}
                       disabled={isUsed || showFeedback}
                       onClick={() => {
+                        playSound('click');
                         const nextBlank = String(Object.keys(blanksValues).length + 1);
                         setBlanksValues(prev => ({ ...prev, [nextBlank]: opt.text }));
                       }}
@@ -310,7 +325,10 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                   <button
                     key={idx}
                     disabled={showFeedback || !!matchingSelections[String(idx)]}
-                    onClick={() => setActiveMatchSource(String(idx))}
+                    onClick={() => {
+                      playSound('click');
+                      setActiveMatchSource(String(idx));
+                    }}
                     className={cn(
                       "w-full p-4 rounded-2xl text-left text-sm font-black border-b-4 transition-all",
                       activeMatchSource === String(idx) 
@@ -323,23 +341,23 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                 ))}
               </div>
               <div className="space-y-3">
-                {[...(challenge.options as any[] || [])].map(o => o.match).filter(Boolean).sort().map((match, idx) => {
-                  const isMatched = Object.values(matchingSelections).includes(match || '');
+                {Array.from(new Set((challenge.options as any[] || []).map(o => o.match).filter(Boolean))).sort().map((match, idx) => {
                   return (
                     <button
                       key={idx}
-                      disabled={showFeedback || isMatched || !activeMatchSource}
+                      disabled={showFeedback || !activeMatchSource}
                       onClick={() => {
                         if (activeMatchSource) {
+                          playSound('match');
                           setMatchingSelections(prev => ({ ...prev, [activeMatchSource]: match || '' }));
                           setActiveMatchSource(null);
                         }
                       }}
                       className={cn(
                         "w-full p-4 rounded-2xl text-left text-sm font-black border-b-4 transition-all",
-                        isMatched 
-                          ? "bg-voyage-primary/10 border-voyage-primary text-voyage-primary opacity-40 translate-y-[4px] shadow-none" 
-                          : (!activeMatchSource ? "bg-duo-swan/10 text-duo-wolf/30 border-transparent cursor-not-allowed" : "bg-white border-duo-swan hover:border-voyage-accent")
+                        !activeMatchSource 
+                          ? "bg-duo-swan/10 text-duo-wolf/30 border-transparent cursor-not-allowed" 
+                          : "bg-white border-duo-swan hover:border-voyage-accent shadow-[0_4px_0_0_#e5e5e5]"
                       )}
                     >
                       {match}
@@ -359,8 +377,13 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                     key={opt.id}
                     onClick={() => {
                       if (showFeedback) return;
-                      if (rank > 0) setSelectedRankIds(prev => prev.filter(id => id !== opt.id));
-                      else setSelectedRankIds(prev => [...prev, opt.id]);
+                      if (rank > 0) {
+                        playSound('click');
+                        setSelectedRankIds(prev => prev.filter(id => id !== opt.id));
+                      } else {
+                        playSound('click');
+                        setSelectedRankIds(prev => [...prev, opt.id]);
+                      }
                     }}
                     className={cn(
                       "w-full flex items-center gap-4 p-5 text-left rounded-2xl border-b-4 transition-all",
@@ -412,7 +435,10 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                  <button
                    key={i}
                    disabled={showFeedback}
-                   onClick={() => setSelectedWordIdx(i)}
+                   onClick={() => {
+                     playSound('click');
+                     setSelectedWordIdx(i);
+                   }}
                    className={cn(
                      "inline-block px-2 mx-0.5 rounded-lg transition-all",
                      selectedWordIdx === i 
@@ -446,7 +472,10 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                       <button
                         key={opt.id}
                         disabled={showFeedback}
-                        onClick={() => setSelectedOptionId(opt.id)}
+                        onClick={() => {
+                          playSound('click');
+                          setSelectedOptionId(opt.id);
+                        }}
                         className={cn(
                           "p-4 rounded-2xl font-black transition-all border-b-4",
                           selectedOptionId === opt.id 
@@ -471,6 +500,7 @@ export default function ChallengeScreen({ city, missionId, onComplete, onBack }:
                       whileTap={{ scale: 0.9 }}
                       onClick={() => {
                         if (showFeedback) return;
+                        playSound('click');
                         setMatchingSelections(prev => ({ ...prev, [i]: String((parseInt(prev[i] || '0') + 90) % 360) }));
                       }}
                       className="bg-white rounded-xl border-2 border-voyage-secondary/10 flex items-center justify-center relative overflow-hidden group shadow-sm"

@@ -5,12 +5,14 @@
 
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
+import { useAudio } from '../hooks/useAudio';
 
 interface WelcomeScreenProps {
   onStart: () => void;
 }
 
 export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
+  const { playSound } = useAudio();
   return (
     <div className="h-full w-full flex flex-col bg-white overflow-y-auto overflow-x-hidden">
       {/* Hero section */}
@@ -77,14 +79,20 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       <section className="px-8 pb-12 space-y-4 w-full max-w-md mx-auto mb-4 shrink-0">
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={onStart}
+          onClick={() => {
+            playSound('click');
+            onStart();
+          }}
           className="btn-voyage-primary w-full text-xl py-4 flex items-center justify-center gap-3"
         >
           <span className="font-black uppercase tracking-tight">C'est parti !</span>
           <ArrowRight size={24} strokeWidth={3} />
         </motion.button>
         
-        <button className="w-full py-4 border-2 border-voyage-accent/30 rounded-2xl text-voyage-accent font-black uppercase tracking-tight hover:bg-voyage-accent/5 transition-all border-b-4">
+        <button 
+          onClick={() => playSound('click')}
+          className="w-full py-4 border-2 border-voyage-accent/30 rounded-2xl text-voyage-accent font-black uppercase tracking-tight hover:bg-voyage-accent/5 transition-all border-b-4"
+        >
           Se connecter
         </button>
       </section>

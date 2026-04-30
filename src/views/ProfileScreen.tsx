@@ -1,13 +1,14 @@
-﻿import { motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { Settings, MessageCircle, GitBranch, Users, Brain, ChevronRight, TrendingUp, Trophy, Star, Shield, Flame } from 'lucide-react';
 import TopAppBar from '../components/TopAppBar';
 import { cn } from '../lib/utils';
 
 interface ProfileScreenProps {
   onBack: () => void;
+  onSettings: () => void;
 }
 
-export default function ProfileScreen({ onBack }: ProfileScreenProps) {
+export default function ProfileScreen({ onBack, onSettings }: ProfileScreenProps) {
   const stats = { xp: 1450, stars: 120, level: 4 };
   
   const skills = [
@@ -40,12 +41,14 @@ export default function ProfileScreen({ onBack }: ProfileScreenProps) {
                    referrerPolicy="no-referrer"
                  />
               </div>
-              <motion.div 
+              <motion.button 
                 whileHover={{ scale: 1.1 }}
-                className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border-b-4 border-duo-swan rounded-2xl flex items-center justify-center shadow-lg cursor-pointer"
+                whileTap={{ scale: 0.9 }}
+                onClick={onSettings}
+                className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border-b-4 border-duo-swan rounded-2xl flex items-center justify-center shadow-lg cursor-pointer z-20"
               >
                 <Settings size={20} className="text-duo-wolf" />
-              </motion.div>
+              </motion.button>
            </div>
            
            <div className="mt-6 space-y-1">

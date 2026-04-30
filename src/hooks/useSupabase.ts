@@ -151,8 +151,8 @@ export function useSupabaseQuestions(missionId: string) {
              // For matching
              options = q.options.pairs.map((p: any, idx: number) => ({
                id: String(idx),
-               text: p.item,
-               match: p.match
+               text: p.item || p.left || '',
+               match: p.match || p.right || ''
              }));
           } else if (q.options?.steps) {
              // For scenario-cascade

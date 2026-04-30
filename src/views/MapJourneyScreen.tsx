@@ -5,25 +5,76 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
+import { 
+  Landmark, Waves, Flower2, Shield, Ship, Palette, 
   MapPin, Trophy, Check, ChevronRight, X, Loader2, Lock,
-  Star, Sparkles, Navigation2
+  Star, Sparkles, Navigation2, Sun, Mountain, Castle
 } from 'lucide-react';
-import { type City } from '../types';
-import { cn } from '../lib/utils';
-import TopAppBar from '../components/TopAppBar';
-import { useSupabaseCities, useSupabaseMissions } from '../hooks/useSupabase';
 
-// ── Icônes par ville (emoji ou lucide) ──────────────────────────────────────
-const CITY_ICONS: Record<string, string> = {
-  rabat:       '🏛️',
-  chefchaouen: '🔵',
-  fes:         '🏺',
-  marrakech:   '🌹',
-  agadir:      '🌊',
-  meknes:      '⚔️',
-  tanger:      '🚢',
-  essaouira:   '🎨',
+// ── Thèmes par ville ────────────────────────────────────────────────────────
+const CITY_THEMES: Record<string, { 
+  icon: React.ReactNode, 
+  color: string, 
+  colorDark: string,
+  colorLight: string,
+  bgGradient: string 
+}> = {
+  rabat: {
+    icon: <Landmark />,
+    color: '#7B3F1A',
+    colorDark: '#4E2510',
+    colorLight: '#A0572B',
+    bgGradient: 'linear-gradient(135deg, #A0572B, #7B3F1A)'
+  },
+  chefchaouen: {
+    icon: <Mountain />,
+    color: '#1E40AF',
+    colorDark: '#1E3A8A',
+    colorLight: '#3B82F6',
+    bgGradient: 'linear-gradient(135deg, #3B82F6, #1E40AF)'
+  },
+  fes: {
+    icon: <Castle />,
+    color: '#065F46',
+    colorDark: '#064E3B',
+    colorLight: '#10B981',
+    bgGradient: 'linear-gradient(135deg, #10B981, #065F46)'
+  },
+  marrakech: {
+    icon: <Flower2 />,
+    color: '#991B1B',
+    colorDark: '#7F1D1D',
+    colorLight: '#EF4444',
+    bgGradient: 'linear-gradient(135deg, #EF4444, #991B1B)'
+  },
+  agadir: {
+    icon: <Sun />,
+    color: '#D97706',
+    colorDark: '#92400E',
+    colorLight: '#F59E0B',
+    bgGradient: 'linear-gradient(135deg, #F59E0B, #D97706)'
+  },
+  meknes: {
+    icon: <Shield />,
+    color: '#3F6212',
+    colorDark: '#365314',
+    colorLight: '#84CC16',
+    bgGradient: 'linear-gradient(135deg, #84CC16, #3F6212)'
+  },
+  tanger: {
+    icon: <Ship />,
+    color: '#3730A3',
+    colorDark: '#312E81',
+    colorLight: '#6366F1',
+    bgGradient: 'linear-gradient(135deg, #6366F1, #3730A3)'
+  },
+  essaouira: {
+    icon: <Palette />,
+    color: '#0369A1',
+    colorDark: '#075985',
+    colorLight: '#0EA5E9',
+    bgGradient: 'linear-gradient(135deg, #0EA5E9, #0369A1)'
+  },
 };
 
 // ── Couleurs de nœud par statut ─────────────────────────────────────────────
@@ -61,13 +112,21 @@ interface MapJourneyScreenProps {
 export default function MapJourneyScreen({
   stats, completedCities, completedMissions, onSelectCity
 }: MapJourneyScreenProps) {
+  const { playSound } = useAudio();
   const { cities, loading } = useSupabaseCities(completedCities, completedMissions);
   const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
   const [cinematicCity, setCinematicCity]   = useState<City | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
 
-  const handleShowCitySheet  = (city: City) => { if (city.status !== 'locked') { setSelectedCityId(city.id); setIsDescriptionExpanded(true); } };
+  const handleShowCitySheet  = (city: City) => { 
+    if (city.status !== 'locked') { 
+      playSound('whoosh');
+      setSelectedCityId(city.id); 
+      setIsDescriptionExpanded(true); 
+    } 
+  };
   const handleLaunchAdventure = (city: City) => {
+    playSound('click');
     if (city.cinematicIntro && city.status !== 'completed') { setCinematicCity(city); }
     else { onSelectCity(city); }
   };
@@ -89,7 +148,7 @@ export default function MapJourneyScreen({
   }
 
   const activeCity  = (cities?.length > 0) ? (cities.find(c => c.status === 'active') || cities[0]) : null;
-  const displayCity = selectedCityId ? cities.find(c => c.id === selectedCityId) || activeCity : activeCity;
+  const displayCity = selectedCityId ? cities.find(c => c.id === selectedCityId) : null;
 
   return (
     <div className="h-full w-full flex flex-col relative overflow-hidden map-bg">
@@ -131,10 +190,10 @@ export default function MapJourneyScreen({
                   <motion.div
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 4, repeat: Infinity }}
-                    className="w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl shadow-2xl border-4 border-[#D4A43E]/50"
-                    style={{ background: 'radial-gradient(circle, #A0572B, #4E2510)' }}
+                    className="w-28 h-28 mx-auto rounded-full flex items-center justify-center shadow-2xl border-4 border-[#D4A43E]/50"
+                    style={{ background: CITY_THEMES[cinematicCity.id]?.bgGradient || 'radial-gradient(circle, #A0572B, #4E2510)' }}
                   >
-                    {CITY_ICONS[cinematicCity.id] ?? '🗺️'}
+                    {React.cloneElement(CITY_THEMES[cinematicCity.id]?.icon as React.ReactElement, { size: 56, className: "text-white" }) ?? '🗺️'}
                   </motion.div>
 
                   <div className="space-y-3">
@@ -154,7 +213,10 @@ export default function MapJourneyScreen({
                   <motion.button
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
-                    onClick={() => { const c = cinematicCity; setCinematicCity(null); onSelectCity(c); }}
+                    onClick={() => { 
+                      playSound('click');
+                      const c = cinematicCity; setCinematicCity(null); onSelectCity(c); 
+                    }}
                     className="btn-voyage-accent px-10 py-4 text-lg w-full"
                   >
                     🚀 Commencer l'Aventure
@@ -268,13 +330,16 @@ export default function MapJourneyScreen({
                   style={{ background: 'linear-gradient(160deg, #FBF3E3 0%, #F5E8C8 100%)' }}
                 >
                   {/* Décoration coin */}
-                  <div className="absolute top-0 right-0 w-28 h-28 opacity-10 pointer-events-none text-7xl flex items-start justify-end pr-2 pt-1">
-                    {CITY_ICONS[displayCity.id] ?? '🗺️'}
+                  <div className="absolute top-0 right-0 w-28 h-28 opacity-10 pointer-events-none flex items-start justify-end pr-4 pt-4">
+                    {React.cloneElement(CITY_THEMES[displayCity.id]?.icon as React.ReactElement, { size: 80, className: "text-voyage-primary" })}
                   </div>
 
                   {/* Fermer */}
                   <button
-                    onClick={() => setSelectedCityId(null)}
+                    onClick={() => {
+                      playSound('click');
+                      setSelectedCityId(null);
+                    }}
                     className="absolute top-4 right-4 p-2 bg-white/60 hover:bg-white rounded-xl transition-colors z-50 border border-[#C9A96E]/30"
                   >
                     <X size={18} className="text-[#7B3F1A]" />
@@ -283,10 +348,10 @@ export default function MapJourneyScreen({
                   {/* En-tête */}
                   <div className="flex items-start gap-4 mb-4 pr-10">
                     <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0 border-2 border-[#D4A43E]/40 shadow-md"
-                      style={{ background: 'linear-gradient(135deg, #A0572B, #7B3F1A)' }}
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white/40 shadow-md"
+                      style={{ background: CITY_THEMES[displayCity.id]?.bgGradient || 'linear-gradient(135deg, #A0572B, #7B3F1A)' }}
                     >
-                      {CITY_ICONS[displayCity.id] ?? '📍'}
+                      {React.cloneElement(CITY_THEMES[displayCity.id]?.icon as React.ReactElement, { size: 32, className: "text-white" })}
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
@@ -317,15 +382,23 @@ export default function MapJourneyScreen({
                   {/* Description avec Toggle */}
                   <div className="mb-5">
                     <button 
-                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      className="flex items-center gap-2 text-[10px] font-black text-[#A0572B] uppercase tracking-widest hover:opacity-70 transition-opacity mb-2"
+                      onClick={() => {
+                        playSound('click');
+                        setIsDescriptionExpanded(!isDescriptionExpanded);
+                      }}
+                      className="w-full flex items-center justify-between p-3 rounded-xl bg-white/50 border border-[#C9A96E]/20 hover:bg-white/80 transition-all mb-2 group"
                     >
-                      <span>À propos de la ville</span>
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-[#D4A43E]" />
+                        <span className="text-[10px] font-black text-[#A0572B] uppercase tracking-widest">
+                          {isDescriptionExpanded ? "Réduire la description" : "En savoir plus sur la ville"}
+                        </span>
+                      </div>
                       <motion.div
-                        animate={{ rotate: isDescriptionExpanded ? 90 : 0 }}
-                        transition={{ duration: 0.2 }}
+                        animate={{ rotate: isDescriptionExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <ChevronRight size={12} strokeWidth={3} />
+                        <ChevronRight size={14} strokeWidth={3} className="text-[#A0572B] group-hover:translate-x-0.5 transition-transform" />
                       </motion.div>
                     </button>
                     
@@ -370,7 +443,11 @@ export default function MapJourneyScreen({
                       "space-y-2 overflow-y-auto pr-1 scrollbar-hide transition-all duration-300",
                       isDescriptionExpanded ? "max-h-[28vh]" : "max-h-[45vh]"
                     )}>
-                      <MissionsList cityId={displayCity.id} completedMissions={completedMissions} />
+                      <MissionsList 
+                        cityId={displayCity.id} 
+                        completedMissions={completedMissions} 
+                        cityTheme={CITY_THEMES[displayCity.id]}
+                      />
                     </div>
                   </div>
 
@@ -490,9 +567,12 @@ const CityNode: React.FC<{
             <motion.span
               animate={{ y: [0, -6, 0], scale: [1, 1.06, 1] }}
               transition={{ duration: 3 + Math.random(), repeat: Infinity, ease: 'easeInOut' }}
-              className="text-3xl leading-none select-none"
+              className="leading-none select-none flex items-center justify-center"
             >
-              {icon}
+              {React.cloneElement(CITY_THEMES[city.id]?.icon as React.ReactElement, { 
+                size: 32, 
+                className: isLocked ? "text-[#9B8870]" : "text-white" 
+              })}
             </motion.span>
           )}
         </div>
@@ -576,8 +656,12 @@ const CityNode: React.FC<{
 };
 
 // ── Liste de missions ─────────────────────────────────────────────────────────
-const MissionsList: React.FC<{ cityId: string; completedMissions: string[] }> = ({
-  cityId, completedMissions,
+const MissionsList: React.FC<{ 
+  cityId: string; 
+  completedMissions: string[];
+  cityTheme?: any;
+}> = ({
+  cityId, completedMissions, cityTheme
 }) => {
   const { missions, loading } = useSupabaseMissions(cityId);
 
@@ -602,19 +686,25 @@ const MissionsList: React.FC<{ cityId: string; completedMissions: string[] }> = 
             )}
           >
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm',
-                isDone
-                  ? 'bg-[#D4A43E] text-[#4E2510]'
-                  : 'bg-[#C9A96E]/20 text-[#7B3F1A]',
-              )}>
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm transition-colors"
+                style={{ 
+                  backgroundColor: isDone ? cityTheme?.color : `${cityTheme?.color}22`,
+                  color: isDone ? 'white' : cityTheme?.color
+                }}
+              >
                 {isDone ? <Check size={14} strokeWidth={3} /> : idx + 1}
               </div>
               <div>
                 <p className={cn('text-sm font-black', isDone ? 'text-[#7B3F1A]' : 'text-[#4E2510]')}>
                   {mission.title_fr}
                 </p>
-                <p className="text-[10px] font-bold text-[#A0572B]/60">+{mission.xp_reward} XP</p>
+                <p 
+                  className="text-[10px] font-bold opacity-60"
+                  style={{ color: cityTheme?.color }}
+                >
+                  +{mission.xp_reward} XP
+                </p>
               </div>
             </div>
             {isDone && (

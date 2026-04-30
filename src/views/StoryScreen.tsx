@@ -6,6 +6,7 @@
 import { motion } from 'motion/react';
 import { X, MoreVertical, MapPin, ArrowRight, User, BookOpen } from 'lucide-react';
 import { type City, type Mission } from '../types';
+import { useAudio } from '../hooks/useAudio';
 
 interface StoryScreenProps {
   city: City;
@@ -15,6 +16,7 @@ interface StoryScreenProps {
 }
 
 export default function StoryScreen({ city, onClose, onStartChallenge, mission }: StoryScreenProps) {
+  const { playSound } = useAudio();
   return (
     <div className="h-full w-full relative overflow-hidden bg-white">
       {/* Hero Background Illustration */}
@@ -34,7 +36,7 @@ export default function StoryScreen({ city, onClose, onStartChallenge, mission }
 
       {/* Header Overlay */}
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-transparent">
-        <button onClick={onClose} className="p-2 hover:bg-voyage-accent/10 rounded-xl transition-colors">
+        <button onClick={() => { playSound('click'); onClose(); }} className="p-2 hover:bg-voyage-accent/10 rounded-xl transition-colors">
           <X size={24} className="text-voyage-primary/60" />
         </button>
 
@@ -112,7 +114,7 @@ export default function StoryScreen({ city, onClose, onStartChallenge, mission }
             <div className="pt-4">
               <motion.button 
                 whileTap={{ scale: 0.95 }}
-                onClick={onStartChallenge}
+                onClick={() => { playSound('click'); onStartChallenge(); }}
                 className="btn-voyage-primary w-full text-xl py-5 flex items-center justify-center gap-3"
               >
                 <span className="font-black uppercase tracking-tight">C'est parti !</span>

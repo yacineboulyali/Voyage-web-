@@ -45,6 +45,14 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Réduction globale des icônes de 5% */
+  svg {
+    width: 0.95em;
+    height: 0.95em;
+    transform: scale(0.95);
+    transform-origin: center;
+  }
 }
 
 .font-headline { font-family: var(--font-headline); }

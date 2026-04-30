@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { MapIcon, Trophy, User, Compass, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAudio } from '../hooks/useAudio';
 
 interface BottomNavBarProps {
   activeTab: string;
@@ -8,6 +9,7 @@ interface BottomNavBarProps {
 }
 
 export default function BottomNavBar({ activeTab, onTabChange }: BottomNavBarProps) {
+  const { playSound } = useAudio();
   const tabs = [
     { id: 'explore', icon: Compass, label: 'Explorer' },
     { id: 'league', icon: Trophy, label: 'Ligues' },
@@ -26,7 +28,10 @@ export default function BottomNavBar({ activeTab, onTabChange }: BottomNavBarPro
           <motion.button
             key={tab.id}
             whileTap={{ scale: 0.9 }}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => {
+              playSound('click');
+              onTabChange(tab.id);
+            }}
             className={cn(
               "flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all group",
               isActive ? "bg-voyage-primary/10 border-b-4 border-voyage-primary" : "hover:bg-voyage-sand/30 border-b-4 border-transparent"
